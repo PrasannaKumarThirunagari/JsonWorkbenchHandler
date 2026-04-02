@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Json Intelligence</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["ui-sans-serif", "system-ui", "Segoe UI", "Roboto", "sans-serif"],
+              mono: ["ui-monospace", "Cascadia Code", "Consolas", "monospace"],
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="min-h-screen bg-zinc-100 text-zinc-900 antialiased">
+    <header
+      class="sticky top-0 z-40 border-b border-zinc-200 bg-white/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/90"
+    >
+      <div class="mx-auto flex max-w-screen-2xl flex-wrap items-center justify-between gap-3 px-2 py-2 sm:px-2">
+        <div class="flex items-center gap-3">
+          <span
+            class="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-100 text-lg font-bold text-emerald-700 ring-1 ring-emerald-200"
+            aria-hidden="true"
+            >{}</span
+          >
+          <div>
+            <h1 class="text-lg font-semibold tracking-tight text-zinc-900">JsonIntelligence</h1>
+            <p class="text-xs text-zinc-500">Compare, search, and traverse JSON in the browser</p>
+          </div>
+        </div>
+        <nav class="flex gap-1 rounded-lg bg-zinc-100 p-1 ring-1 ring-zinc-200" role="tablist" aria-label="Main">
+          <button
+            type="button"
+            id="tab-compare"
+            role="tab"
+            aria-selected="true"
+            aria-controls="panel-compare"
+            class="tab-btn rounded-md px-4 py-2 text-sm font-medium text-zinc-600 transition hover:text-zinc-900 aria-selected:bg-white aria-selected:text-emerald-700 aria-selected:shadow-sm"
+          >
+            Compare files
+          </button>
+          <button
+            type="button"
+            id="tab-explore"
+            role="tab"
+            aria-selected="false"
+            aria-controls="panel-explore"
+            class="tab-btn rounded-md px-4 py-2 text-sm font-medium text-zinc-600 transition hover:text-zinc-900 aria-selected:bg-white aria-selected:text-emerald-700 aria-selected:shadow-sm"
+          >
+            Search &amp; traverse
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-screen-2xl px-1 py-2 sm:px-2">
+      <!-- Compare -->
+      <section
+        id="panel-compare"
+        role="tabpanel"
+        aria-labelledby="tab-compare"
+        class="space-y-2"
+      >
+        <div
+          class="flex max-w-full flex-nowrap items-center gap-3 overflow-x-auto rounded-xl border border-zinc-200 bg-white px-3 py-2 shadow-sm sm:gap-4 sm:px-4 [scrollbar-width:thin]"
+          role="toolbar"
+          aria-label="Compare actions and filters"
+        >
+          <button
+            type="button"
+            id="btn-compare-now"
+            disabled
+            class="shrink-0 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 sm:px-5"
+          >
+            Compare JSON
+          </button>
+          <span class="hidden h-6 w-px shrink-0 bg-zinc-200 sm:block" aria-hidden="true"></span>
+          <p
+            id="compare-status"
+            class="shrink-0 whitespace-nowrap text-xs leading-snug text-zinc-600"
+          ></p>
+          <span class="hidden h-6 w-px shrink-0 bg-zinc-200 sm:block" aria-hidden="true"></span>
+          <div
+            class="flex shrink-0 flex-nowrap items-center gap-x-4 gap-y-0 text-sm text-zinc-700"
+            role="group"
+            aria-label="Comparison result filters"
+          >
+            <span class="whitespace-nowrap text-[10px] font-semibold uppercase tracking-wide text-zinc-400">Show</span>
+            <label class="flex cursor-pointer items-center gap-1.5 whitespace-nowrap select-none sm:gap-2">
+              <input
+                type="checkbox"
+                id="compare-opt-keys"
+                checked
+                class="h-4 w-4 shrink-0 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500"
+              />
+              <span class="hidden sm:inline">Key / property changes</span>
+              <span class="sm:hidden">Keys</span>
+            </label>
+            <label class="flex cursor-pointer items-center gap-1.5 whitespace-nowrap select-none sm:gap-2">
+              <input
+                type="checkbox"
+                id="compare-opt-values"
+                checked
+                class="h-4 w-4 shrink-0 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500"
+              />
+              <span class="hidden sm:inline">Value changes</span>
+              <span class="sm:hidden">Values</span>
+            </label>
+          </div>
+        </div>
+
+        <p id="compare-error" class="hidden rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-sm text-red-800"></p>
+        <div id="compare-split" class="space-y-2">
+          <div
+            class="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-sm"
+          >
+            <div class="grid min-h-0 lg:grid-cols-2 lg:divide-x lg:divide-zinc-100">
+            <!-- First JSON editor -->
+            <div class="flex flex-col overflow-hidden">
+              <div
+                class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-zinc-100/80 px-3 py-2.5 sm:px-4"
+              >
+                <p class="min-w-0 text-sm font-medium leading-snug text-zinc-700">First JSON (Left)</p>
+                <div class="flex flex-shrink-0 flex-wrap items-center justify-end gap-0.5">
+                <input type="file" id="file-left" accept=".json,application/json" class="hidden" />
+                <button
+                  type="button"
+                  id="btn-cmp-left-upload"
+                  title="Upload JSON file"
+                  class="cmp-toolbar-btn rounded-lg p-2 text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-800"
+                  aria-label="Upload"
+                >
+                  <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5-5m0 0l5 5m-5-5v12" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  id="btn-cmp-left-copy"
+                  title="Copy all"
+                  class="cmp-toolbar-btn rounded-lg p-2 text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-800"
+                  aria-label="Copy"
+                >
+                  <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  id="btn-cmp-left-paste"
+                  title="Paste from clipboard"
+                  class="cmp-toolbar-btn rounded-lg p-2 text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-800"
+                  aria-label="Paste"
+                >
+                  <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  id="btn-cmp-left-cut"
+                  title="Cut selection"
+                  class="cmp-toolbar-btn rounded-lg p-2 text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-800"
+                  aria-label="Cut"
+                >
+                  <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243zM12 12l2.879-2.879m0 5.758a3 3 0 104.243 4.243 3 3 0 00-4.243-4.243zm0-5.758a3 3 0 104.243-4.243 3 3 0 00-4.243 4.243z" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  id="btn-cmp-left-delete"
+                  title="Clear editor"
+                  class="cmp-toolbar-btn rounded-lg p-2 text-zinc-500 transition hover:bg-red-50 hover:text-red-700"
+                  aria-label="Delete"
+                >
+                  <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+                </div>
+              </div>
+              <div class="flex flex-col gap-1 px-3 pb-3 pt-1">
+                <div
+                  class="flex min-h-[200px] max-h-[min(45vh,420px)] overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50/80"
+                >
+                  <div
+                    id="gutter-compare-left"
+                    class="editor-gutter w-11 shrink-0 overflow-y-auto border-r border-sky-100/80 bg-sky-50/90 py-2 pr-2 text-right font-mono text-xs leading-[1.5rem] text-zinc-400 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                    aria-hidden="true"
+                  >
+                    1
+                  </div>
+                  <textarea
+                    id="paste-compare-left"
+                    spellcheck="false"
+                    placeholder="Type (or paste) here …"
+                    class="min-h-0 w-0 flex-1 resize-none border-0 bg-white py-2 pl-3 pr-2 font-mono text-sm leading-6 text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-0"
+                  ></textarea>
+                </div>
+                <p id="validate-compare-left" class="hidden px-0.5 text-xs"></p>
+                <div class="flex flex-wrap items-center justify-end gap-2 border-t border-zinc-100 pt-2">
+                  <div class="flex shrink-0 gap-1">
+                    <button
+                      type="button"
+                      id="btn-format-compare-left"
+                      class="rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-xs font-medium text-zinc-700 shadow-sm hover:bg-zinc-50"
+                    >
+                      Format
+                    </button>
+                    <button
+                      type="button"
+                      id="btn-clear-compare-left"
+                      class="rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-xs font-medium text-zinc-700 shadow-sm hover:bg-zinc-50"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: second JSON input -->
+            <div class="flex flex-col overflow-hidden">
+              <div
+                class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-zinc-100/80 px-3 py-2.5 sm:px-4"
+              >
+                <p class="min-w-0 text-sm font-medium leading-snug text-zinc-700">Second JSON (Right)</p>
+                <div class="flex flex-shrink-0 flex-wrap items-center justify-end gap-0.5">
+                <input type="file" id="file-right" accept=".json,application/json" class="hidden" />
+                <button
+                  type="button"
+                  id="btn-cmp-right-upload"
+                  title="Upload JSON file"
+                  class="cmp-toolbar-btn rounded-lg p-2 text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-800"
+                  aria-label="Upload"
+                >
+                  <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5-5m0 0l5 5m-5-5v12" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  id="btn-cmp-right-copy"
+                  title="Copy all"
+                  class="cmp-toolbar-btn rounded-lg p-2 text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-800"
+                  aria-label="Copy"
+                >
+                  <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  id="btn-cmp-right-download"
+                  title="Download as .json"
+                  class="cmp-toolbar-btn rounded-lg p-2 text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-800"
+                  aria-label="Download"
+                >
+                  <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V3" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  id="btn-cmp-right-view"
+                  title="Preview formatted JSON"
+                  class="cmp-toolbar-btn rounded-lg p-2 text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-800"
+                  aria-label="Preview"
+                >
+                  <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                </button>
+                </div>
+              </div>
+              <div class="flex flex-col gap-1 px-3 pb-3 pt-1">
+                <div
+                  class="flex min-h-[200px] max-h-[min(45vh,420px)] overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50/80"
+                >
+                  <div
+                    id="gutter-compare-right"
+                    class="editor-gutter w-11 shrink-0 overflow-y-auto border-r border-sky-100/80 bg-sky-50/90 py-2 pr-2 text-right font-mono text-xs leading-[1.5rem] text-zinc-400 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                    aria-hidden="true"
+                  >
+                    1
+                  </div>
+                  <textarea
+                    id="paste-compare-right"
+                    spellcheck="false"
+                    placeholder="Type (or paste) here …"
+                    class="min-h-0 w-0 flex-1 resize-none border-0 bg-white py-2 pl-3 pr-2 font-mono text-sm leading-6 text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-0"
+                  ></textarea>
+                </div>
+                <p id="validate-compare-right" class="hidden px-0.5 text-xs"></p>
+                <div class="flex flex-wrap items-center justify-end gap-2 border-t border-zinc-100 pt-2">
+                  <div class="flex shrink-0 gap-1">
+                    <button
+                      type="button"
+                      id="btn-format-compare-right"
+                      class="rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-xs font-medium text-zinc-700 shadow-sm hover:bg-zinc-50"
+                    >
+                      Format
+                    </button>
+                    <button
+                      type="button"
+                      id="btn-clear-compare-right"
+                      class="rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-xs font-medium text-zinc-700 shadow-sm hover:bg-zinc-50"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            </div>
+
+            <div class="border-t border-zinc-200 bg-zinc-50/40">
+              <div
+                id="compare-diffs-inline-body"
+                class="max-h-[min(55vh,600px)] min-h-[100px] overflow-auto px-3 py-3 sm:px-4 sm:py-4 font-mono text-sm text-zinc-800"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Explore -->
+      <section id="panel-explore" role="tabpanel" aria-labelledby="tab-explore" class="hidden space-y-4">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-end">
+          <label class="block flex-1">
+            <span class="mb-1 block text-xs font-medium uppercase tracking-wide text-zinc-500">Load JSON</span>
+            <input
+              type="file"
+              id="file-explore"
+              accept=".json,application/json"
+              class="block w-full max-w-md text-sm text-zinc-700 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-200 file:px-3 file:py-2 file:text-sm file:font-medium file:text-emerald-800 hover:file:bg-zinc-300"
+            />
+          </label>
+          <label class="block flex-1 min-w-[200px]">
+            <span class="mb-1 block text-xs font-medium uppercase tracking-wide text-zinc-500">Or paste JSON</span>
+            <textarea
+              id="paste-explore"
+              rows="2"
+              placeholder='{"example": true}'
+              class="w-full resize-y rounded-lg border border-zinc-300 bg-white px-3 py-2 font-mono text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+            ></textarea>
+          </label>
+          <button
+            type="button"
+            id="btn-parse-paste"
+            class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-emerald-700 lg:self-end"
+          >
+            Parse pasted
+          </button>
+        </div>
+        <p id="explore-error" class="hidden rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"></p>
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <label class="flex flex-1 items-center gap-2">
+            <span class="shrink-0 text-xs font-medium uppercase tracking-wide text-zinc-500">Search</span>
+            <input
+              type="search"
+              id="search-explore"
+              autocomplete="off"
+              placeholder="Filter by key or value…"
+              class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+            />
+          </label>
+          <label class="flex shrink-0 items-center gap-2 sm:min-w-[280px]">
+            <span class="text-xs font-medium uppercase tracking-wide text-zinc-500">Jump to path</span>
+            <select
+              id="path-select"
+              class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+            >
+              <option value="">— Select path —</option>
+            </select>
+          </label>
+        </div>
+        <div class="rounded-xl border border-zinc-200 bg-white p-3 shadow-sm">
+          <div id="tree-explore" class="json-tree max-h-[min(70vh,640px)] overflow-auto rounded-lg border border-zinc-100 bg-zinc-50 px-2 py-1.5 font-mono text-sm leading-snug"></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- JSON preview (right viewer eye icon) -->
+    <div
+      id="modal-preview-overlay"
+      class="fixed inset-0 z-50 hidden overflow-y-auto p-4 sm:p-8"
+      aria-hidden="true"
+    >
+      <button
+        type="button"
+        id="modal-preview-backdrop"
+        class="fixed inset-0 bg-zinc-900/30 backdrop-blur-[2px]"
+        aria-label="Close dialog"
+      ></button>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-preview-title"
+        class="relative z-10 mx-auto mt-4 flex max-h-[min(88vh,900px)] w-full max-w-3xl flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-xl"
+      >
+        <header class="flex shrink-0 items-center justify-between gap-3 border-b border-zinc-200 bg-zinc-50 px-4 py-3">
+          <h2 id="modal-preview-title" class="text-lg font-semibold text-zinc-900">JSON preview</h2>
+          <button
+            type="button"
+            id="modal-preview-close"
+            class="rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+          >
+            Close
+          </button>
+        </header>
+        <pre
+          id="modal-preview-body"
+          class="min-h-0 flex-1 overflow-auto whitespace-pre-wrap break-words p-4 font-mono text-sm text-zinc-800"
+        ></pre>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

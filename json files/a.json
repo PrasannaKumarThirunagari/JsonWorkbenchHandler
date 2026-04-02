@@ -1,0 +1,99 @@
+{
+  "organization": {
+    "name": "Balaji Flutes",
+    "location": {
+      "country": "India",
+      "state": "Telangana",
+      "city": "Hyderabad",
+      "address": {
+        "building": "Vijaya Sai Seva Residency",
+        "flat": "102-A",
+        "area": {
+          "locality": "Miyapur",
+          "zone": {
+            "region": "North West",
+            "pincode": {
+              "code": "500049",
+              "meta": {
+                "type": "Residential",
+                "delivery": {
+                  "available": true,
+                  "timeSlots": ["Morning", "Evening"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "products": [
+      {
+        "category": "Flutes",
+        "type": "Bamboo",
+        "details": {
+          "scale": "D#",
+          "dimensions": {
+            "length": 40,
+            "unit": "cm",
+            "precision": {
+              "tolerance": {
+                "min": 0.2,
+                "max": 0.5,
+                "unit": "mm",
+                "qualityCheck": {
+                  "passed": true,
+                  "inspector": {
+                    "name": "Ravi",
+                    "experience": {
+                      "years": 5,
+                      "certification": {
+                        "name": "ISO",
+                        "level": "Advanced"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
+    "metadata": {
+      "createdBy": {
+        "user": "admin",
+        "roles": {
+          "primary": "owner",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "advanced": {
+              "delete": false,
+              "audit": {
+                "enabled": true,
+                "logs": {
+                  "lastLogin": "2026-04-01T10:00:00Z",
+                  "history": {
+                    "entries": [
+                      {
+                        "action": "login",
+                        "status": "success",
+                        "device": {
+                          "type": "desktop",
+                          "os": {
+                            "name": "Windows",
+                            "version": "11"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
