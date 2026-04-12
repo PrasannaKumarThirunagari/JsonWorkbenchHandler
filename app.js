@@ -294,10 +294,11 @@
       const row = document.createElement("div");
       row.className = "select-text";
       row.dataset.path = path;
-      if (jumpHighlight) row.classList.add("ring-2", "ring-emerald-500", "ring-offset-2", "ring-offset-white", "rounded");
+      if (jumpHighlight) row.classList.add("ring-2", "ring-emerald-500", "rounded");
 
       const head = document.createElement("div");
-      head.className = "flex cursor-pointer items-start gap-1 py-0.5 hover:bg-zinc-200/80 rounded";
+      head.className =
+        "flex cursor-pointer items-start gap-1 py-0.5 rounded hover:bg-zinc-200/80 dark:hover:bg-zinc-800/70";
       const toggle = document.createElement("button");
       toggle.type = "button";
       toggle.className = "mt-0.5 shrink-0 text-zinc-500 hover:text-zinc-800 w-4 text-center text-[13px] leading-none";
@@ -358,10 +359,11 @@
       const row = document.createElement("div");
       row.className = "select-text";
       row.dataset.path = path;
-      if (jumpHighlight) row.classList.add("ring-2", "ring-emerald-500", "ring-offset-2", "ring-offset-white", "rounded");
+      if (jumpHighlight) row.classList.add("ring-2", "ring-emerald-500", "rounded");
 
       const head = document.createElement("div");
-      head.className = "flex cursor-pointer items-start gap-1 py-0.5 hover:bg-zinc-200/80 rounded";
+      head.className =
+        "flex cursor-pointer items-start gap-1 py-0.5 rounded hover:bg-zinc-200/80 dark:hover:bg-zinc-800/70";
       const toggle = document.createElement("button");
       toggle.type = "button";
       toggle.className = "mt-0.5 shrink-0 text-zinc-500 hover:text-zinc-800 w-4 text-center text-[13px] leading-none";
@@ -420,7 +422,7 @@
     const span = document.createElement("span");
     span.dataset.path = path;
     // Prefer natural wrapping over breaking inside long tokens.
-    span.className = "text-zinc-800 break-words";
+    span.className = "break-words text-zinc-800 dark:text-zinc-200";
     if (jumpHighlight) span.classList.add("rounded", "bg-emerald-100", "px-1");
     let text = formatValue(value);
     if (q && text.toLowerCase().includes(q.toLowerCase())) {
@@ -432,6 +434,9 @@
 
   let exploreData = null;
   let exploreCollapsed = new Set();
+  /** Paths for Jump to path combobox (from last parsed explore JSON). */
+  let explorePathList = [];
+  let pathSelectActiveIndex = -1;
   let compareLeft = null;
   let compareRight = null;
   let compareDiff = null;
@@ -653,14 +658,14 @@
     body.innerHTML = "";
     if (compareDiff === null) {
       body.innerHTML =
-        '<p class="py-6 text-center text-sm text-zinc-500">Add valid JSON in both editors, then click <span class="font-medium text-emerald-700">Compare JSON</span>. The comparison will appear here.</p>';
+        '<p class="py-8 text-center text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">Add valid JSON on both sides, then <span class="font-semibold text-emerald-600 dark:text-emerald-400">run comparison</span>. Results appear here.</p>';
       return;
     }
     const opts = getCompareFilterOptions();
     const fullPruned = pruneDiff(compareDiff);
     if (!fullPruned) {
       body.innerHTML =
-        '<p class="py-6 text-center text-sm text-zinc-500">No differences — documents are equal.</p>';
+        '<p class="py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">No differences — documents are equal.</p>';
       return;
     }
     if (!opts.keyChanges && !opts.valueChanges) {
@@ -672,7 +677,7 @@
     const pruned = filtered ? pruneDiff(filtered) : null;
     if (!pruned) {
       body.innerHTML =
-        '<p class="py-6 text-center text-sm text-zinc-500">No differences match the current filters. Try enabling both options or adjust your selection.</p>';
+        '<p class="py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">No differences match the current filters. Try enabling both options or adjust your selection.</p>';
       return;
     }
     renderPrunedDiffNode(body, pruned, "$");
@@ -705,7 +710,7 @@
     root.innerHTML = "";
     if (exploreData == null) {
       root.innerHTML =
-        '<p class="text-zinc-500 text-sm p-4">Load a JSON file or paste JSON and click <span class="font-medium text-emerald-700">Parse pasted</span>.</p>';
+        '<p class="p-6 text-center text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">Load a file or paste JSON, then <span class="font-semibold text-emerald-600 dark:text-emerald-400">parse</span> to browse the tree.</p>';
       return;
     }
     const q = $("search-explore").value;
@@ -720,17 +725,213 @@
   }
 
   function fillPathSelect(data) {
-    const sel = $("path-select");
-    const keep = sel.value;
-    sel.innerHTML = '<option value="">— Select path —</option>';
-    const paths = enumeratePaths(data);
-    for (const p of paths) {
-      const opt = document.createElement("option");
-      opt.value = p;
-      opt.textContent = p;
-      sel.appendChild(opt);
+    explorePathList = data == null ? [] : enumeratePaths(data);
+    const hidden = $("path-select");
+    const input = $("path-select-input");
+    const keep = hidden && hidden.value ? hidden.value : "";
+    if (!keep || !explorePathList.includes(keep)) {
+      if (hidden) hidden.value = "";
+    } else if (hidden) {
+      hidden.value = keep;
     }
-    if (paths.includes(keep)) sel.value = keep;
+    if (input) input.value = (hidden && hidden.value) || "";
+    closePathListbox();
+  }
+
+  function getFilteredPaths(query) {
+    const q = query.trim().toLowerCase();
+    if (!q) return explorePathList.slice();
+    return explorePathList.filter((p) => p.toLowerCase().includes(q));
+  }
+
+  function closePathListbox() {
+    const list = $("path-select-listbox");
+    const input = $("path-select-input");
+    if (list) {
+      list.classList.add("hidden");
+      list.innerHTML = "";
+    }
+    if (input) input.setAttribute("aria-expanded", "false");
+    pathSelectActiveIndex = -1;
+  }
+
+  function openPathListbox() {
+    const list = $("path-select-listbox");
+    const input = $("path-select-input");
+    if (!list || !input || explorePathList.length === 0) return;
+    list.classList.remove("hidden");
+    input.setAttribute("aria-expanded", "true");
+  }
+
+  function updatePathListHighlight(items) {
+    if (!items || !items.length) return;
+    items.forEach((el, i) => {
+      const on = i === pathSelectActiveIndex;
+      el.classList.toggle("bg-emerald-50", on);
+      el.classList.toggle("dark:bg-emerald-950/50", on);
+      el.classList.toggle("font-medium", on);
+      el.classList.toggle("text-emerald-900", on);
+      el.classList.toggle("dark:text-emerald-300", on);
+      el.classList.toggle("text-zinc-700", !on);
+      el.classList.toggle("dark:text-zinc-300", !on);
+      el.setAttribute("aria-selected", String(on));
+    });
+  }
+
+  function renderPathListOptions(filtered) {
+    const list = $("path-select-listbox");
+    if (!list) return;
+    list.innerHTML = "";
+    pathSelectActiveIndex = filtered.length ? 0 : -1;
+    filtered.forEach((p, i) => {
+      const li = document.createElement("li");
+      li.setAttribute("role", "option");
+      li.setAttribute("aria-selected", String(i === pathSelectActiveIndex));
+      li.dataset.path = p;
+      li.className =
+        "cursor-pointer rounded-lg px-3 py-2 font-mono text-xs leading-snug text-zinc-700 transition-colors hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800 " +
+        (i === pathSelectActiveIndex
+          ? "bg-emerald-50 font-medium text-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-300"
+          : "");
+      li.textContent = p;
+      li.addEventListener("mouseenter", () => {
+        pathSelectActiveIndex = i;
+        updatePathListHighlight(list.querySelectorAll("[role='option']"));
+      });
+      li.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        commitJumpPath(p);
+      });
+      list.appendChild(li);
+    });
+  }
+
+  function applyJumpPathFromSelect() {
+    const v = $("path-select").value;
+    if (!v) {
+      rerenderExplore();
+      return;
+    }
+    const prefixes = pathPrefixes(v);
+    prefixes.forEach((p) => exploreCollapsed.delete(p));
+    rerenderExplore();
+    requestAnimationFrame(() => {
+      const root = $("tree-explore");
+      const esc =
+        typeof CSS !== "undefined" && typeof CSS.escape === "function"
+          ? CSS.escape(v)
+          : v.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+      const target = root.querySelector("[data-path=\"" + esc + "\"]");
+      if (target) target.scrollIntoView({ block: "center", behavior: "smooth" });
+    });
+  }
+
+  function commitJumpPath(path) {
+    const hidden = $("path-select");
+    const input = $("path-select-input");
+    if (hidden) hidden.value = path;
+    if (input) input.value = path;
+    closePathListbox();
+    applyJumpPathFromSelect();
+  }
+
+  function initPathSelectCombo() {
+    const wrap = $("path-select-wrap");
+    const input = $("path-select-input");
+    const list = $("path-select-listbox");
+    if (!wrap || !input || !list) return;
+
+    const refreshListFromInput = () => {
+      const filtered = getFilteredPaths(input.value);
+      renderPathListOptions(filtered);
+      if (filtered.length) openPathListbox();
+      else closePathListbox();
+    };
+
+    input.addEventListener("input", () => {
+      refreshListFromInput();
+    });
+
+    input.addEventListener("focus", () => {
+      if (explorePathList.length === 0) return;
+      const filtered = getFilteredPaths(input.value);
+      renderPathListOptions(filtered);
+      if (filtered.length) openPathListbox();
+    });
+
+    input.addEventListener("keydown", (e) => {
+      const items = list.querySelectorAll("[role='option']");
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        if (list.classList.contains("hidden")) {
+          refreshListFromInput();
+          return;
+        }
+        if (!items.length) return;
+        pathSelectActiveIndex = Math.min(pathSelectActiveIndex + 1, items.length - 1);
+        updatePathListHighlight(items);
+        items[pathSelectActiveIndex].scrollIntoView({ block: "nearest" });
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        if (list.classList.contains("hidden")) {
+          refreshListFromInput();
+          return;
+        }
+        if (!items.length) return;
+        pathSelectActiveIndex = Math.max(pathSelectActiveIndex - 1, 0);
+        updatePathListHighlight(items);
+        items[pathSelectActiveIndex].scrollIntoView({ block: "nearest" });
+        return;
+      }
+      if (e.key === "Enter") {
+        if (!list.classList.contains("hidden") && items.length && pathSelectActiveIndex >= 0) {
+          e.preventDefault();
+          const p = items[pathSelectActiveIndex].dataset.path;
+          if (p) commitJumpPath(p);
+        }
+        return;
+      }
+      if (e.key === "Escape") {
+        if (!list.classList.contains("hidden")) {
+          e.preventDefault();
+          closePathListbox();
+          input.value = $("path-select").value || "";
+        }
+      }
+    });
+
+    input.addEventListener("blur", () => {
+      window.setTimeout(() => {
+        if (!wrap.contains(document.activeElement)) {
+          const hidden = $("path-select");
+          const q = input.value.trim();
+          if (!q) {
+            if (hidden) hidden.value = "";
+            applyJumpPathFromSelect();
+            return;
+          }
+          if (explorePathList.includes(q)) {
+            if (hidden) hidden.value = q;
+            applyJumpPathFromSelect();
+            return;
+          }
+          const exactCi = explorePathList.find((p) => p.toLowerCase() === q.toLowerCase());
+          if (exactCi) {
+            if (hidden) hidden.value = exactCi;
+            input.value = exactCi;
+            applyJumpPathFromSelect();
+            return;
+          }
+          input.value = hidden.value || "";
+        }
+      }, 120);
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!wrap.contains(e.target)) closePathListbox();
+    });
   }
 
   function rerenderCompare() {
@@ -756,24 +957,106 @@
     }
   }
 
-  $("tab-compare").addEventListener("click", () => setTab("compare"));
-  $("tab-explore").addEventListener("click", () => setTab("explore"));
+  function bindJsonDropZone(el, onDropFile) {
+    if (!el) return;
+    el.addEventListener("dragenter", (e) => {
+      e.preventDefault();
+      el.classList.add("drop-zone-active");
+    });
+    el.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "copy";
+    });
+    el.addEventListener("dragleave", (e) => {
+      if (!el.contains(e.relatedTarget)) el.classList.remove("drop-zone-active");
+    });
+    el.addEventListener("drop", (e) => {
+      e.preventDefault();
+      el.classList.remove("drop-zone-active");
+      const f = e.dataTransfer.files && e.dataTransfer.files[0];
+      if (f) onDropFile(f);
+    });
+  }
 
-  $("file-explore").addEventListener("change", async (e) => {
-    const f = e.target.files && e.target.files[0];
-    if (!f) return;
+  async function ingestCompareSideFromFile(side, file) {
+    if (!file) return;
+    showError($("compare-error"), "");
+    try {
+      const text = await readFileAsText(file);
+      const ta = side === "left" ? $("paste-compare-left") : $("paste-compare-right");
+      ta.value = text;
+      compareDiff = null;
+      const parsed = parseJsonDetailed(text.trim());
+      if (parsed.error) {
+        if (side === "left") {
+          compareLeft = null;
+          setValidate("left", false, "❌ " + parsed.error);
+        } else {
+          compareRight = null;
+          setValidate("right", false, "❌ " + parsed.error);
+        }
+      } else {
+        if (side === "left") {
+          compareLeft = parsed.value;
+          setValidate("left", true, "✔ Valid JSON");
+        } else {
+          compareRight = parsed.value;
+          setValidate("right", true, "✔ Valid JSON");
+        }
+      }
+      updateCompareCTA();
+      rerenderCompare();
+      refreshCompareLineGutters();
+    } catch (err) {
+      setValidate(side, false, "❌ " + String(err.message || err));
+      updateCompareCTA();
+      rerenderCompare();
+      refreshCompareLineGutters();
+    }
+  }
+
+  async function ingestExploreFromFile(file) {
+    if (!file) return;
     showError($("explore-error"), "");
     try {
-      const text = await readFileAsText(f);
+      const text = await readFileAsText(file);
       const data = tryParseJson(text, $("explore-error"));
       if (!data) return;
       exploreData = data;
       exploreCollapsed = new Set();
       fillPathSelect(data);
+      $("paste-explore").value = text;
       rerenderExplore();
     } catch (err) {
       showError($("explore-error"), String(err.message || err));
     }
+  }
+
+  function initThemeToggle() {
+    const btn = $("theme-toggle");
+    if (!btn) return;
+    btn.addEventListener("click", () => {
+      const root = document.documentElement;
+      const next = !root.classList.contains("dark");
+      root.classList.toggle("dark", next);
+      try {
+        localStorage.setItem("ji-theme", next ? "dark" : "light");
+      } catch (e) {}
+    });
+  }
+
+  $("tab-compare").addEventListener("click", () => setTab("compare"));
+  $("tab-explore").addEventListener("click", () => setTab("explore"));
+
+  $("file-explore").addEventListener("change", async (e) => {
+    const input = e.target;
+    const f = input.files && input.files[0];
+    if (!f) {
+      input.value = "";
+      return;
+    }
+    await ingestExploreFromFile(f);
+    input.value = "";
   });
 
   $("btn-parse-paste").addEventListener("click", () => {
@@ -792,25 +1075,7 @@
 
   $("search-explore").addEventListener("input", () => rerenderExplore());
 
-  $("path-select").addEventListener("change", () => {
-    const v = $("path-select").value;
-    if (!v) {
-      rerenderExplore();
-      return;
-    }
-    const prefixes = pathPrefixes(v);
-    prefixes.forEach((p) => exploreCollapsed.delete(p));
-    rerenderExplore();
-    requestAnimationFrame(() => {
-      const root = $("tree-explore");
-      const esc =
-        typeof CSS !== "undefined" && typeof CSS.escape === "function"
-          ? CSS.escape(v)
-          : v.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-      const target = root.querySelector("[data-path=\"" + esc + "\"]");
-      if (target) target.scrollIntoView({ block: "center", behavior: "smooth" });
-    });
-  });
+  initPathSelectCombo();
 
   function posToLineCol(text, pos) {
     let line = 1;
@@ -968,6 +1233,429 @@
     overlay.setAttribute("aria-hidden", "true");
   }
 
+  const jsonTreeModalCollapsed = new Set();
+  const SVG_NS = "http://www.w3.org/2000/svg";
+
+  function renderScalarValueHtml(v) {
+    if (v === null) return '<span class="text-zinc-500">null</span>';
+    if (typeof v === "boolean")
+      return '<span class="font-medium text-sky-700">' + escapeHtml(String(v)) + "</span>";
+    if (typeof v === "number")
+      return '<span class="font-medium text-red-600">' + escapeHtml(String(v)) + "</span>";
+    return '<span class="text-zinc-900">' + escapeHtml(JSON.stringify(v)) + "</span>";
+  }
+
+  function partitionObject(obj) {
+    const scalars = [];
+    const nested = [];
+    for (const k of Object.keys(obj).sort()) {
+      const v = obj[k];
+      if (v !== null && typeof v === "object") nested.push([k, v]);
+      else scalars.push([k, v]);
+    }
+    return { scalars, nested };
+  }
+
+  function renderJsonGraphArray(container, arr, path, state) {
+    if (arr.length === 0) {
+      const el = document.createElement("div");
+      el.className =
+        "g-leaf shrink-0 rounded border border-zinc-300 bg-white px-2 py-1 text-sm text-zinc-500 shadow-sm";
+      el.textContent = "[ ]";
+      container.appendChild(el);
+      return;
+    }
+    arr.forEach((item, i) => {
+      const cp = path + "[" + i + "]";
+      const wrap = document.createElement("div");
+      wrap.className = "g-array-item flex flex-row items-stretch gap-0";
+      renderJsonGraph(wrap, item, cp, state);
+      container.appendChild(wrap);
+    });
+  }
+
+  function renderJsonGraphObject(container, obj, path, state) {
+    const { scalars, nested } = partitionObject(obj);
+    const row = document.createElement("div");
+    row.className = "g-row flex flex-row items-stretch gap-0";
+
+    const left = document.createElement("div");
+    left.className = "g-left flex shrink-0 flex-col justify-center";
+    const objBox = document.createElement("div");
+    objBox.className =
+      "g-object max-w-[min(100vw-6rem,22rem)] rounded border border-zinc-400 bg-white px-2.5 py-2 text-left text-xs shadow-sm sm:text-sm";
+    if (scalars.length === 0) {
+      objBox.innerHTML = '<span class="text-zinc-400">{ }</span>';
+    } else {
+      objBox.innerHTML = scalars
+        .map(
+          ([k, v]) =>
+            '<div class="leading-snug"><span class="font-semibold text-indigo-800">' +
+            escapeHtml(k) +
+            '</span><span class="text-zinc-400">:</span> ' +
+            renderScalarValueHtml(v) +
+            "</div>",
+        )
+        .join("");
+    }
+    left.appendChild(objBox);
+    row.appendChild(left);
+
+    if (nested.length === 0) {
+      container.appendChild(row);
+      return;
+    }
+
+    const bridge = document.createElement("div");
+    bridge.className = "g-bridge relative w-12 shrink-0 self-stretch min-h-[2rem] sm:w-14";
+    bridge.dataset.graphBridge = "1";
+    const svg = document.createElementNS(SVG_NS, "svg");
+    svg.setAttribute("class", "graph-svg pointer-events-none absolute inset-0 h-full w-full overflow-visible");
+    bridge.appendChild(svg);
+    row.appendChild(bridge);
+
+    const right = document.createElement("div");
+    right.className = "g-right flex flex-col justify-center gap-6 py-1";
+    for (const [k, v] of nested) {
+      const nr = document.createElement("div");
+      nr.className = "g-nested-row flex flex-row items-stretch gap-0";
+      const juncCell = document.createElement("div");
+      juncCell.className = "g-junction-cell flex shrink-0 flex-col justify-center py-1";
+      const childPath = path === "$" ? "$." + k : path + "." + k;
+      const collapsed = state.collapsed.has(childPath);
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className =
+        "g-junction flex max-w-[10rem] items-center gap-1 rounded border border-zinc-500 bg-zinc-200/95 px-2 py-1 text-left text-xs font-semibold text-zinc-900 shadow-sm hover:bg-zinc-300/90";
+      btn.setAttribute("aria-expanded", (!collapsed).toString());
+      btn.innerHTML =
+        "<span class='min-w-0 truncate'>" +
+        escapeHtml(k) +
+        "</span><svg class='h-3.5 w-3.5 shrink-0 text-zinc-600' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4'/></svg>";
+      btn.addEventListener("click", () => {
+        if (state.collapsed.has(childPath)) state.collapsed.delete(childPath);
+        else state.collapsed.add(childPath);
+        state.rerender();
+      });
+      juncCell.appendChild(btn);
+      nr.appendChild(juncCell);
+
+      if (!collapsed) {
+        const b2 = document.createElement("div");
+        b2.className = "g-bridge relative w-10 shrink-0 self-stretch min-h-[2rem] sm:w-12";
+        b2.dataset.graphBridge = "1";
+        const svg2 = document.createElementNS(SVG_NS, "svg");
+        svg2.setAttribute(
+          "class",
+          "graph-svg pointer-events-none absolute inset-0 h-full w-full overflow-visible",
+        );
+        b2.appendChild(svg2);
+        nr.appendChild(b2);
+        const sub = document.createElement("div");
+        sub.className = "g-subtree flex min-w-0 flex-1 flex-col gap-3";
+        renderJsonGraph(sub, v, childPath, state);
+        nr.appendChild(sub);
+      }
+      right.appendChild(nr);
+    }
+    row.appendChild(right);
+    container.appendChild(row);
+  }
+
+  function renderJsonGraph(container, value, path, state) {
+    if (value !== null && typeof value === "object") {
+      if (Array.isArray(value)) {
+        renderJsonGraphArray(container, value, path, state);
+        return;
+      }
+      renderJsonGraphObject(container, value, path, state);
+      return;
+    }
+    const leaf = document.createElement("div");
+    leaf.className =
+      "g-leaf shrink-0 rounded border border-zinc-300 bg-white px-2 py-1.5 text-xs shadow-sm sm:text-sm";
+    leaf.innerHTML = renderScalarValueHtml(value);
+    container.appendChild(leaf);
+  }
+
+  function drawGraphBridges(scroller) {
+    if (!scroller) return;
+    scroller.querySelectorAll("[data-graph-bridge]").forEach((bridge) => {
+      const svg = bridge.querySelector(".graph-svg");
+      if (!svg) return;
+      const left = bridge.previousElementSibling;
+      const right = bridge.nextElementSibling;
+      if (!left || !right) {
+        svg.innerHTML = "";
+        return;
+      }
+
+      const br = bridge.getBoundingClientRect();
+      let w = Math.max(br.width, 40);
+      let h = Math.max(br.height, 24);
+      bridge.style.width = w + "px";
+      const br2 = bridge.getBoundingClientRect();
+      w = Math.max(br2.width, 40);
+      h = Math.max(br2.height, 24);
+
+      svg.setAttribute("width", String(w));
+      svg.setAttribute("height", String(h));
+      svg.setAttribute("viewBox", "0 0 " + w + " " + h);
+      svg.innerHTML = "";
+
+      const stroke = "#94a3b8";
+      const sw = 1.75;
+
+      function addCurve(x0, y0, x1, y1) {
+        const c1x = x0 + (x1 - x0) * 0.45;
+        const c2x = x0 + (x1 - x0) * 0.55;
+        const p = document.createElementNS(SVG_NS, "path");
+        p.setAttribute(
+          "d",
+          "M " + x0 + " " + y0 + " C " + c1x + " " + y0 + " " + c2x + " " + y1 + " " + x1 + " " + y1,
+        );
+        p.setAttribute("fill", "none");
+        p.setAttribute("stroke", stroke);
+        p.setAttribute("stroke-width", String(sw));
+        p.setAttribute("stroke-linecap", "round");
+        svg.appendChild(p);
+      }
+
+      const brFinal = bridge.getBoundingClientRect();
+
+      let sourceEl = left.querySelector(".g-object, .g-junction");
+      if (!sourceEl) sourceEl = left;
+
+      const collectTargets = () => {
+        const out = [];
+        if (right.classList.contains("g-right")) {
+          right.querySelectorAll(":scope > .g-nested-row").forEach((nr) => {
+            const j = nr.querySelector(":scope > .g-junction-cell .g-junction");
+            if (j) out.push(j);
+          });
+          return out;
+        }
+        if (right.classList.contains("g-subtree")) {
+          right.querySelectorAll(":scope > .g-array-item").forEach((ai) => {
+            const t = ai.querySelector(".g-object, .g-leaf, .g-row");
+            if (t) out.push(t);
+          });
+          const direct = right.querySelectorAll(":scope > .g-leaf, :scope > .g-row");
+          direct.forEach((el) => out.push(el));
+          return out;
+        }
+        if (right.classList.contains("g-leaf") || right.classList.contains("g-row")) {
+          out.push(right);
+        }
+        return out;
+      };
+
+      const targets = collectTargets();
+      if (targets.length === 0) {
+        const rr = right.getBoundingClientRect();
+        const sx = 0;
+        const sy = Math.max(
+          0,
+          Math.min(h, sourceEl.getBoundingClientRect().top + sourceEl.getBoundingClientRect().height / 2 - brFinal.top),
+        );
+        const ex = w;
+        const ey = Math.max(0, Math.min(h, rr.top + rr.height / 2 - brFinal.top));
+        addCurve(sx, sy, ex, ey);
+        return;
+      }
+
+      const sr = sourceEl.getBoundingClientRect();
+      const sx = 0;
+      const sy = Math.max(
+        0,
+        Math.min(h, sr.top + sr.height / 2 - brFinal.top),
+      );
+      targets.forEach((te) => {
+        const tr = te.getBoundingClientRect();
+        const ex = w;
+        const ey = Math.max(0, Math.min(h, tr.top + tr.height / 2 - brFinal.top));
+        addCurve(sx, sy, ex, ey);
+      });
+    });
+  }
+
+  let jsonGraphResizeObserver = null;
+  let jsonGraphScrollCleanup = null;
+  let jsonGraphTransform = { scale: 1, rotate: 0 };
+
+  function clamp(n, min, max) {
+    return Math.max(min, Math.min(max, n));
+  }
+
+  function updateJsonGraphControlsUI() {
+    const label = $("graph-zoom-label");
+    if (!label) return;
+    label.textContent = Math.round(jsonGraphTransform.scale * 100) + "%";
+  }
+
+  function applyJsonGraphTransform(stage, inner) {
+    if (!stage || !inner) return;
+    const s = clamp(jsonGraphTransform.scale, 0.5, 2.5);
+    const rot = ((jsonGraphTransform.rotate % 360) + 360) % 360;
+    jsonGraphTransform = { scale: s, rotate: rot };
+
+    const sw = Math.max(1, inner.scrollWidth);
+    const sh = Math.max(1, inner.scrollHeight);
+
+    let tx = 0;
+    let ty = 0;
+    if (rot === 90) tx = sh * s;
+    else if (rot === 180) {
+      tx = sw * s;
+      ty = sh * s;
+    } else if (rot === 270) ty = sw * s;
+
+    inner.style.transformOrigin = "top left";
+    inner.style.transform = `translate(${tx}px, ${ty}px) rotate(${rot}deg) scale(${s})`;
+
+    const w = (rot === 90 || rot === 270 ? sh : sw) * s;
+    const h = (rot === 90 || rot === 270 ? sw : sh) * s;
+    stage.style.width = Math.ceil(w) + "px";
+    stage.style.height = Math.ceil(h) + "px";
+
+    updateJsonGraphControlsUI();
+  }
+
+  function renderJsonTreeModalContent(data) {
+    const body = $("modal-json-tree-body");
+    if (!body || data == null) return;
+    if (jsonGraphResizeObserver) {
+      jsonGraphResizeObserver.disconnect();
+      jsonGraphResizeObserver = null;
+    }
+    if (jsonGraphScrollCleanup) {
+      jsonGraphScrollCleanup();
+      jsonGraphScrollCleanup = null;
+    }
+    body.innerHTML = "";
+    const stage = document.createElement("div");
+    stage.id = "json-graph-stage";
+    stage.className = "relative inline-block min-w-min";
+    body.appendChild(stage);
+    const inner = document.createElement("div");
+    inner.className = "json-graph-root flex min-w-min flex-col gap-3 p-1";
+    stage.appendChild(inner);
+    const state = {
+      collapsed: jsonTreeModalCollapsed,
+      rerender: () => {
+        renderJsonTreeModalContent(data);
+      },
+    };
+    renderJsonGraph(inner, data, "$", state);
+    applyJsonGraphTransform(stage, inner);
+    const runDraw = () => drawGraphBridges(body);
+    requestAnimationFrame(() => {
+      runDraw();
+      requestAnimationFrame(runDraw);
+    });
+    jsonGraphResizeObserver = new ResizeObserver(runDraw);
+    jsonGraphResizeObserver.observe(body);
+    jsonGraphResizeObserver.observe(inner);
+    const onScroll = () => runDraw();
+    body.addEventListener("scroll", onScroll, { passive: true });
+    jsonGraphScrollCleanup = () => body.removeEventListener("scroll", onScroll);
+  }
+
+  function onJsonTreeModalEscape(e) {
+    if (e.key === "Escape") closeJsonTreeModal();
+  }
+
+  function openJsonTreeModal(data, titleText) {
+    const overlay = $("modal-json-tree-overlay");
+    const titleEl = $("modal-json-tree-title");
+    if (!overlay || !titleEl) return;
+    titleEl.textContent = titleText;
+    jsonTreeModalCollapsed.clear();
+    jsonGraphTransform = { scale: 1, rotate: 0 };
+    updateJsonGraphControlsUI();
+    renderJsonTreeModalContent(data);
+    overlay.classList.remove("hidden");
+    overlay.setAttribute("aria-hidden", "false");
+    const closeBtn = $("modal-json-tree-close");
+    if (closeBtn) closeBtn.focus();
+    document.addEventListener("keydown", onJsonTreeModalEscape);
+  }
+
+  function closeJsonTreeModal() {
+    const overlay = $("modal-json-tree-overlay");
+    if (!overlay) return;
+    if (jsonGraphResizeObserver) {
+      jsonGraphResizeObserver.disconnect();
+      jsonGraphResizeObserver = null;
+    }
+    if (jsonGraphScrollCleanup) {
+      jsonGraphScrollCleanup();
+      jsonGraphScrollCleanup = null;
+    }
+    overlay.classList.add("hidden");
+    overlay.setAttribute("aria-hidden", "true");
+    document.removeEventListener("keydown", onJsonTreeModalEscape);
+  }
+
+  function withJsonGraphStage(cb) {
+    const body = $("modal-json-tree-body");
+    if (!body) return;
+    const stage = $("json-graph-stage") || body.querySelector("#json-graph-stage");
+    const inner = stage ? stage.querySelector(".json-graph-root") : null;
+    if (!stage || !inner) return;
+    cb(stage, inner, body);
+  }
+
+  function graphZoomBy(delta) {
+    withJsonGraphStage((stage, inner, body) => {
+      const next = clamp(Math.round((jsonGraphTransform.scale + delta) * 10) / 10, 0.5, 2.5);
+      jsonGraphTransform.scale = next;
+      applyJsonGraphTransform(stage, inner);
+      drawGraphBridges(body);
+    });
+  }
+
+  function graphRotateBy(deltaDeg) {
+    withJsonGraphStage((stage, inner, body) => {
+      jsonGraphTransform.rotate = (((jsonGraphTransform.rotate + deltaDeg) % 360) + 360) % 360;
+      applyJsonGraphTransform(stage, inner);
+      drawGraphBridges(body);
+    });
+  }
+
+  function graphResetView() {
+    withJsonGraphStage((stage, inner, body) => {
+      jsonGraphTransform = { scale: 1, rotate: 0 };
+      applyJsonGraphTransform(stage, inner);
+      drawGraphBridges(body);
+    });
+  }
+
+  function openCompareJsonTreeViewer(side) {
+    const data = side === "left" ? compareLeft : compareRight;
+    if (data == null) {
+      showError(
+        $("compare-error"),
+        (side === "left" ? "Left" : "Right") + " JSON must be valid before opening the graph viewer.",
+      );
+      return;
+    }
+    showError($("compare-error"), "");
+    openJsonTreeModal(
+      data,
+      side === "left" ? "Graph map — First JSON (Left)" : "Graph map — Second JSON (Right)",
+    );
+  }
+
+  function openExploreJsonTreeViewer() {
+    if (exploreData == null) {
+      showError($("explore-error"), "Load or parse JSON first to open the graph viewer.");
+      return;
+    }
+    showError($("explore-error"), "");
+    openJsonTreeModal(exploreData, "Graph map — Search & traverse");
+  }
+
   function downloadCompareRight() {
     const ta = $("paste-compare-right");
     const text = ta && ta.value ? ta.value : "";
@@ -1008,7 +1696,7 @@
       if (!compareLeft && !compareRight) statusEl.textContent = "Paste or upload JSON on both sides to begin.";
       else if (!compareLeft) statusEl.textContent = "Left JSON needs fixing.";
       else if (!compareRight) statusEl.textContent = "Right JSON needs fixing.";
-      else statusEl.textContent = "Ready. Click Compare JSON.";
+      else statusEl.textContent = "Ready — run comparison.";
     }
   }
 
@@ -1176,9 +1864,28 @@
   $("btn-cmp-left-delete").addEventListener("click", () => $("btn-clear-compare-left").click());
   $("btn-cmp-right-download").addEventListener("click", () => downloadCompareRight());
   $("btn-cmp-right-view").addEventListener("click", () => openPreviewRight());
+  $("btn-cmp-left-json-viewer").addEventListener("click", () => openCompareJsonTreeViewer("left"));
+  $("btn-cmp-right-json-viewer").addEventListener("click", () => openCompareJsonTreeViewer("right"));
+  $("btn-explore-json-viewer").addEventListener("click", () => openExploreJsonTreeViewer());
+  const btnTl = $("btn-toolbar-graph-left");
+  const btnTr = $("btn-toolbar-graph-right");
+  if (btnTl) btnTl.addEventListener("click", () => openCompareJsonTreeViewer("left"));
+  if (btnTr) btnTr.addEventListener("click", () => openCompareJsonTreeViewer("right"));
 
   $("modal-preview-close").addEventListener("click", () => closePreviewModal());
   $("modal-preview-backdrop").addEventListener("click", () => closePreviewModal());
+  $("modal-json-tree-close").addEventListener("click", () => closeJsonTreeModal());
+  $("modal-json-tree-backdrop").addEventListener("click", () => closeJsonTreeModal());
+  const gzi = $("btn-graph-zoom-in");
+  const gzo = $("btn-graph-zoom-out");
+  const grl = $("btn-graph-rotate-left");
+  const grr = $("btn-graph-rotate-right");
+  const grs = $("btn-graph-reset");
+  if (gzi) gzi.addEventListener("click", () => graphZoomBy(0.1));
+  if (gzo) gzo.addEventListener("click", () => graphZoomBy(-0.1));
+  if (grl) grl.addEventListener("click", () => graphRotateBy(-90));
+  if (grr) grr.addEventListener("click", () => graphRotateBy(90));
+  if (grs) grs.addEventListener("click", () => graphResetView());
 
   // Upload file parsing into drafts + show in textarea
   $("file-left").addEventListener("change", async (e) => {
@@ -1188,28 +1895,7 @@
       input.value = "";
       return;
     }
-    showError($("compare-error"), "");
-    try {
-      const text = await readFileAsText(f);
-      $("paste-compare-left").value = text;
-      compareDiff = null;
-      const parsed = parseJsonDetailed(text.trim());
-      if (parsed.error) {
-        compareLeft = null;
-        setValidate("left", false, "❌ " + parsed.error);
-      } else {
-        compareLeft = parsed.value;
-        setValidate("left", true, "✔ Valid JSON");
-      }
-      updateCompareCTA();
-      rerenderCompare();
-      refreshCompareLineGutters();
-    } catch (err) {
-      setValidate("left", false, "❌ " + String(err.message || err));
-      updateCompareCTA();
-      rerenderCompare();
-      refreshCompareLineGutters();
-    }
+    await ingestCompareSideFromFile("left", f);
     input.value = "";
   });
 
@@ -1220,30 +1906,15 @@
       input.value = "";
       return;
     }
-    showError($("compare-error"), "");
-    try {
-      const text = await readFileAsText(f);
-      $("paste-compare-right").value = text;
-      compareDiff = null;
-      const parsed = parseJsonDetailed(text.trim());
-      if (parsed.error) {
-        compareRight = null;
-        setValidate("right", false, "❌ " + parsed.error);
-      } else {
-        compareRight = parsed.value;
-        setValidate("right", true, "✔ Valid JSON");
-      }
-      updateCompareCTA();
-      rerenderCompare();
-      refreshCompareLineGutters();
-    } catch (err) {
-      setValidate("right", false, "❌ " + String(err.message || err));
-      updateCompareCTA();
-      rerenderCompare();
-      refreshCompareLineGutters();
-    }
+    await ingestCompareSideFromFile("right", f);
     input.value = "";
   });
+
+  bindJsonDropZone($("drop-zone-compare-left"), (f) => ingestCompareSideFromFile("left", f));
+  bindJsonDropZone($("drop-zone-compare-right"), (f) => ingestCompareSideFromFile("right", f));
+  bindJsonDropZone($("drop-zone-explore"), (f) => ingestExploreFromFile(f));
+
+  initThemeToggle();
 
   setTab("compare");
   rerenderCompare();
