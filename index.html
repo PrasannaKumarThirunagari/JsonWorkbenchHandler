@@ -132,6 +132,19 @@
             </svg>
             <span>Explore</span>
           </button>
+          <button
+            type="button"
+            id="tab-text-compare"
+            role="tab"
+            aria-selected="false"
+            aria-controls="panel-text-compare"
+            class="tab-btn flex min-w-0 flex-1 shrink-0 items-center justify-center gap-2.5 rounded-lg px-4 py-2.5 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white sm:flex-none lg:w-full lg:justify-start lg:px-3 lg:py-2.5 aria-selected:bg-emerald-600 aria-selected:text-white aria-selected:shadow-md aria-selected:shadow-emerald-600/20 aria-selected:hover:bg-emerald-600 dark:aria-selected:bg-emerald-600 dark:aria-selected:text-white dark:aria-selected:hover:bg-emerald-600 lg:dark:aria-selected:bg-emerald-600"
+          >
+            <svg class="h-[18px] w-[18px] shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h8M8 12h8M8 17h5M5 7h.01M5 12h.01M5 17h.01M15 8l4 4m0 0l-4 4m4-4H9" />
+            </svg>
+            <span>Text Compare</span>
+          </button>
         </nav>
       </aside>
 
@@ -578,6 +591,135 @@
             <div
               id="tree-explore"
               class="json-tree max-h-[min(75vh,800px)] min-h-[200px] w-full overflow-auto rounded-lg bg-white px-5 py-4 font-mono text-[13px] leading-relaxed text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 sm:text-sm"
+            ></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Text compare -->
+      <section id="panel-text-compare" role="tabpanel" aria-labelledby="tab-text-compare" class="mx-auto hidden w-full max-w-none space-y-8">
+        <header class="max-w-4xl">
+          <h2 class="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white sm:text-3xl">Text File Compare</h2>
+          <p class="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
+            Compare any two text files line by line with optional case-sensitive matching and whitespace ignoring.
+          </p>
+        </header>
+
+        <div
+          class="flex min-w-0 flex-col gap-4 rounded-2xl border border-zinc-200/90 bg-white/90 p-5 shadow-sm backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-900/90 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-6 sm:p-6"
+          role="toolbar"
+          aria-label="Text compare controls"
+        >
+          <div class="flex min-w-0 flex-wrap items-center gap-3 sm:gap-4">
+            <button
+              type="button"
+              id="btn-text-compare-now"
+              class="inline-flex min-h-[42px] shrink-0 items-center justify-center rounded-lg bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-600/25 transition hover:bg-emerald-500"
+            >
+              Compare text
+            </button>
+            <div
+              class="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2 border-l border-zinc-200 pl-3 dark:border-zinc-700"
+              role="group"
+              aria-label="Text compare options"
+            >
+              <label class="flex cursor-pointer items-center gap-2 select-none">
+                <input
+                  type="checkbox"
+                  id="text-compare-case-sensitive"
+                  checked
+                  class="h-4 w-4 shrink-0 rounded border-zinc-300 text-emerald-500 focus:ring-emerald-500 dark:border-zinc-600 dark:bg-zinc-900"
+                />
+                <span class="text-xs text-zinc-700 dark:text-zinc-300">Case sensitive</span>
+              </label>
+              <label class="flex cursor-pointer items-center gap-2 select-none">
+                <input
+                  type="checkbox"
+                  id="text-compare-ignore-whitespace"
+                  class="h-4 w-4 shrink-0 rounded border-zinc-300 text-emerald-500 focus:ring-emerald-500 dark:border-zinc-600 dark:bg-zinc-900"
+                />
+                <span class="text-xs text-zinc-700 dark:text-zinc-300">Ignore whitespace</span>
+              </label>
+            </div>
+          </div>
+          <p
+            id="text-compare-status"
+            class="min-w-0 flex-1 text-sm leading-snug text-zinc-500 dark:text-zinc-400 sm:text-right"
+          ></p>
+        </div>
+
+        <div class="overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-[0_1px_3px_rgb(0_0_0/0.04),0_12px_32px_-8px_rgb(0_0_0/0.1)] dark:border-zinc-800 dark:bg-zinc-900 dark:shadow-[0_1px_0_rgb(255_255_255/0.04)_inset]">
+          <div class="grid min-h-0 min-w-0 lg:grid-cols-2 lg:divide-x lg:divide-zinc-200 dark:lg:divide-zinc-800">
+            <div class="flex min-w-0 flex-col overflow-hidden">
+              <div class="flex min-w-0 flex-wrap items-center justify-between gap-3 border-b border-zinc-200 bg-zinc-50/80 px-5 py-3.5 dark:border-zinc-800 dark:bg-zinc-950/40">
+                <p class="min-w-0 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Left file</p>
+                <div class="flex min-w-0 flex-wrap items-center gap-2">
+                  <input type="file" id="file-text-left" class="hidden" />
+                  <button
+                    type="button"
+                    id="btn-text-left-upload"
+                    class="inline-flex min-h-[36px] shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-800 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-emerald-500/40 dark:hover:bg-emerald-950/50 dark:hover:text-emerald-300"
+                  >
+                    Upload
+                  </button>
+                  <button
+                    type="button"
+                    id="btn-text-left-clear"
+                    class="inline-flex min-h-[36px] shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+              <div class="p-5">
+                <textarea
+                  id="paste-text-left"
+                  rows="16"
+                  placeholder="Paste left text or upload a file..."
+                  class="min-h-[360px] w-full resize-y rounded-xl border border-zinc-200 bg-zinc-50/80 px-4 py-3 font-mono text-sm leading-relaxed text-zinc-900 placeholder:text-zinc-400 shadow-inner focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/15 dark:border-zinc-700 dark:bg-zinc-950/50 dark:text-zinc-100 dark:focus:bg-zinc-900"
+                ></textarea>
+              </div>
+            </div>
+
+            <div class="flex min-w-0 flex-col overflow-hidden">
+              <div class="flex min-w-0 flex-wrap items-center justify-between gap-3 border-b border-zinc-200 bg-zinc-50/80 px-5 py-3.5 dark:border-zinc-800 dark:bg-zinc-950/40">
+                <p class="min-w-0 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Right file</p>
+                <div class="flex min-w-0 flex-wrap items-center gap-2">
+                  <input type="file" id="file-text-right" class="hidden" />
+                  <button
+                    type="button"
+                    id="btn-text-right-upload"
+                    class="inline-flex min-h-[36px] shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-800 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-emerald-500/40 dark:hover:bg-emerald-950/50 dark:hover:text-emerald-300"
+                  >
+                    Upload
+                  </button>
+                  <button
+                    type="button"
+                    id="btn-text-right-clear"
+                    class="inline-flex min-h-[36px] shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+              <div class="p-5">
+                <textarea
+                  id="paste-text-right"
+                  rows="16"
+                  placeholder="Paste right text or upload a file..."
+                  class="min-h-[360px] w-full resize-y rounded-xl border border-zinc-200 bg-zinc-50/80 px-4 py-3 font-mono text-sm leading-relaxed text-zinc-900 placeholder:text-zinc-400 shadow-inner focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/15 dark:border-zinc-700 dark:bg-zinc-950/50 dark:text-zinc-100 dark:focus:bg-zinc-900"
+                ></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="border-t border-zinc-200 bg-zinc-50/90 dark:border-zinc-800 dark:bg-zinc-950/60">
+            <div class="flex items-center justify-between gap-3 border-b border-zinc-200 px-6 py-3.5 dark:border-zinc-800">
+              <h3 class="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-400">Line diff output</h3>
+            </div>
+            <div
+              id="text-compare-results"
+              class="max-h-[min(60vh,680px)] min-h-[160px] w-full overflow-auto bg-white px-6 py-6 font-mono text-[13px] leading-relaxed text-zinc-800 dark:bg-zinc-950/30 dark:text-zinc-200 sm:text-sm"
             ></div>
           </div>
         </div>

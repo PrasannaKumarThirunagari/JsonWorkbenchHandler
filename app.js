@@ -440,6 +440,7 @@
   let compareLeft = null;
   let compareRight = null;
   let compareDiff = null;
+  let textCompareDiff = null;
   const popupCollapsed = new Set();
   /** Pretty-print indent for Format and preview (spaces). */
   const FORMAT_JSON_INDENT = 2;
@@ -696,13 +697,19 @@
   function setTab(which) {
     const compareBtn = $("tab-compare");
     const exploreBtn = $("tab-explore");
+    const textCompareBtn = $("tab-text-compare");
     const comparePanel = $("panel-compare");
     const explorePanel = $("panel-explore");
+    const textComparePanel = $("panel-text-compare");
     const isCompare = which === "compare";
+    const isExplore = which === "explore";
+    const isTextCompare = which === "text-compare";
     compareBtn.setAttribute("aria-selected", String(isCompare));
-    exploreBtn.setAttribute("aria-selected", String(!isCompare));
+    exploreBtn.setAttribute("aria-selected", String(isExplore));
+    textCompareBtn.setAttribute("aria-selected", String(isTextCompare));
     comparePanel.classList.toggle("hidden", !isCompare);
-    explorePanel.classList.toggle("hidden", isCompare);
+    explorePanel.classList.toggle("hidden", !isExplore);
+    textComparePanel.classList.toggle("hidden", !isTextCompare);
   }
 
   function rerenderExplore() {
@@ -938,6 +945,261 @@
     rerenderInlineDiffs();
   }
 
+  function getTextCompareOptions() {
+    const caseSensitiveEl = $("text-compare-case-sensitive");
+    const ignoreWhitespaceEl = $("text-compare-ignore-whitespace");
+    return {
+      caseSensitive: !caseSensitiveEl || caseSensitiveEl.checked,
+      ignoreWhitespace: !!(ignoreWhitespaceEl && ignoreWhitespaceEl.checked),
+    };
+  }
+
+  function normalizeTextCompareLine(line, opts) {
+    let out = String(line);
+    if (opts.ignoreWhitespace) out = out.replace(/\s+/g, "");
+    if (!opts.caseSensitive) out = out.toLowerCase();
+    return out;
+  }
+
+  function splitTextCompareLines(text) {
+    const normalized = String(text || "").replace(/\r\n?/g, "\n");
+    return normalized === "" ? [] : normalized.split("\n");
+  }
+
+  function flushTextCompareRuns(out, removedRun, addedRun) {
+    const pairCount = Math.min(removedRun.length, addedRun.length);
+    for (let i = 0; i < pairCount; i++) {
+      out.push({
+        type: "changed",
+        left: removedRun[i].left,
+        right: addedRun[i].right,
+        leftLine: removedRun[i].leftLine,
+        rightLine: addedRun[i].rightLine,
+      });
+    }
+    for (let i = pairCount; i < removedRun.length; i++) out.push(removedRun[i]);
+    for (let i = pairCount; i < addedRun.length; i++) out.push(addedRun[i]);
+  }
+
+  function computeTextCompareDiff(leftText, rightText, opts) {
+    const leftLines = splitTextCompareLines(leftText);
+    const rightLines = splitTextCompareLines(rightText);
+    const leftNorm = leftLines.map((line) => normalizeTextCompareLine(line, opts));
+    const rightNorm = rightLines.map((line) => normalizeTextCompareLine(line, opts));
+    const m = leftNorm.length;
+    const n = rightNorm.length;
+    const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+
+    for (let i = m - 1; i >= 0; i--) {
+      for (let j = n - 1; j >= 0; j--) {
+        if (leftNorm[i] === rightNorm[j]) dp[i][j] = dp[i + 1][j + 1] + 1;
+        else dp[i][j] = Math.max(dp[i + 1][j], dp[i][j + 1]);
+      }
+    }
+
+    const rawRows = [];
+    let i = 0;
+    let j = 0;
+    while (i < m && j < n) {
+      if (leftNorm[i] === rightNorm[j]) {
+        rawRows.push({
+          type: "same",
+          left: leftLines[i],
+          right: rightLines[j],
+          leftLine: i + 1,
+          rightLine: j + 1,
+        });
+        i++;
+        j++;
+      } else if (dp[i + 1][j] >= dp[i][j + 1]) {
+        rawRows.push({
+          type: "removed",
+          left: leftLines[i],
+          right: "",
+          leftLine: i + 1,
+          rightLine: null,
+        });
+        i++;
+      } else {
+        rawRows.push({
+          type: "added",
+          left: "",
+          right: rightLines[j],
+          leftLine: null,
+          rightLine: j + 1,
+        });
+        j++;
+      }
+    }
+    while (i < m) {
+      rawRows.push({
+        type: "removed",
+        left: leftLines[i],
+        right: "",
+        leftLine: i + 1,
+        rightLine: null,
+      });
+      i++;
+    }
+    while (j < n) {
+      rawRows.push({
+        type: "added",
+        left: "",
+        right: rightLines[j],
+        leftLine: null,
+        rightLine: j + 1,
+      });
+      j++;
+    }
+
+    const rows = [];
+    let removedRun = [];
+    let addedRun = [];
+    for (const row of rawRows) {
+      if (row.type === "removed") {
+        removedRun.push(row);
+        continue;
+      }
+      if (row.type === "added") {
+        addedRun.push(row);
+        continue;
+      }
+      if (removedRun.length || addedRun.length) {
+        flushTextCompareRuns(rows, removedRun, addedRun);
+        removedRun = [];
+        addedRun = [];
+      }
+      rows.push(row);
+    }
+    if (removedRun.length || addedRun.length) {
+      flushTextCompareRuns(rows, removedRun, addedRun);
+    }
+
+    const summary = { same: 0, changed: 0, added: 0, removed: 0, total: rows.length };
+    for (const row of rows) {
+      if (row.type === "same") summary.same++;
+      else if (row.type === "changed") summary.changed++;
+      else if (row.type === "added") summary.added++;
+      else if (row.type === "removed") summary.removed++;
+    }
+
+    return { rows, summary, leftCount: leftLines.length, rightCount: rightLines.length, opts };
+  }
+
+  function updateTextCompareCTA() {
+    const btn = $("btn-text-compare-now");
+    const leftEl = $("paste-text-left");
+    const rightEl = $("paste-text-right");
+    const leftText = leftEl ? leftEl.value : "";
+    const rightText = rightEl ? rightEl.value : "";
+    const ready = leftText.trim() !== "" && rightText.trim() !== "";
+    if (btn) btn.disabled = !ready;
+    const statusEl = $("text-compare-status");
+    if (!statusEl) return;
+    if (!leftText.trim() && !rightText.trim()) statusEl.textContent = "Paste or upload text on both sides to begin.";
+    else if (!leftText.trim()) statusEl.textContent = "Left text is empty.";
+    else if (!rightText.trim()) statusEl.textContent = "Right text is empty.";
+    else if (!textCompareDiff) statusEl.textContent = "Ready to compare.";
+  }
+
+  function renderTextCompareResults() {
+    const body = $("text-compare-results");
+    if (!body) return;
+    if (!textCompareDiff) {
+      body.innerHTML =
+        '<p class="py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">Run a text comparison to see line-by-line differences.</p>';
+      return;
+    }
+    if (!textCompareDiff.rows.some((row) => row.type !== "same")) {
+      body.innerHTML =
+        '<p class="py-8 text-center text-sm text-emerald-700 dark:text-emerald-300">The files match with the current options.</p>';
+      return;
+    }
+
+    body.innerHTML = textCompareDiff.rows
+      .map((row) => {
+        const tone =
+          row.type === "same"
+            ? "bg-white dark:bg-transparent"
+            : row.type === "changed"
+              ? "bg-amber-50/80 dark:bg-amber-950/20"
+              : row.type === "added"
+                ? "bg-emerald-50/70 dark:bg-emerald-950/20"
+                : "bg-red-50/70 dark:bg-red-950/20";
+        const leftText =
+          row.leftLine == null
+            ? '<span class="text-zinc-400">∅</span>'
+            : escapeHtml(row.left === "" ? " " : row.left);
+        const rightText =
+          row.rightLine == null
+            ? '<span class="text-zinc-400">∅</span>'
+            : escapeHtml(row.right === "" ? " " : row.right);
+        const badge =
+          row.type === "changed"
+            ? '<span class="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-800 dark:bg-amber-950/70 dark:text-amber-300">Changed</span>'
+            : row.type === "added"
+              ? '<span class="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300">Added</span>'
+              : row.type === "removed"
+                ? '<span class="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-800 dark:bg-red-950/70 dark:text-red-300">Removed</span>'
+                : '<span class="rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">Same</span>';
+        return (
+          '<div class="grid grid-cols-[auto_minmax(0,1fr)_auto_minmax(0,1fr)_auto] items-start gap-x-3 gap-y-2 border-b border-zinc-200/70 px-3 py-2 last:border-b-0 dark:border-zinc-800 ' +
+          tone +
+          '">' +
+          '<div class="w-10 text-right text-xs text-zinc-400">' +
+          (row.leftLine == null ? "" : row.leftLine) +
+          "</div>" +
+          '<pre class="min-w-0 whitespace-pre-wrap break-words text-sm text-zinc-800 dark:text-zinc-100">' +
+          leftText +
+          "</pre>" +
+          '<div class="w-10 text-right text-xs text-zinc-400">' +
+          (row.rightLine == null ? "" : row.rightLine) +
+          "</div>" +
+          '<pre class="min-w-0 whitespace-pre-wrap break-words text-sm text-zinc-800 dark:text-zinc-100">' +
+          rightText +
+          "</pre>" +
+          '<div class="justify-self-end">' +
+          badge +
+          "</div>" +
+          "</div>"
+        );
+      })
+      .join("");
+  }
+
+  function rerenderTextCompare() {
+    renderTextCompareResults();
+  }
+
+  function compareTextNow() {
+    const leftText = $("paste-text-left").value;
+    const rightText = $("paste-text-right").value;
+    if (!leftText.trim() || !rightText.trim()) {
+      textCompareDiff = null;
+      updateTextCompareCTA();
+      rerenderTextCompare();
+      return;
+    }
+    textCompareDiff = computeTextCompareDiff(leftText, rightText, getTextCompareOptions());
+    rerenderTextCompare();
+    const statusEl = $("text-compare-status");
+    if (!statusEl) return;
+    const s = textCompareDiff.summary;
+    if (s.changed === 0 && s.added === 0 && s.removed === 0) {
+      statusEl.textContent = "No differences found with the current options.";
+      return;
+    }
+    statusEl.textContent =
+      s.changed +
+      " changed, " +
+      s.added +
+      " added, " +
+      s.removed +
+      " removed across " +
+      Math.max(textCompareDiff.leftCount, textCompareDiff.rightCount) +
+      " lines.";
+  }
+
   async function readFileAsText(file) {
     return new Promise((resolve, reject) => {
       const r = new FileReader();
@@ -1047,6 +1309,7 @@
 
   $("tab-compare").addEventListener("click", () => setTab("compare"));
   $("tab-explore").addEventListener("click", () => setTab("explore"));
+  $("tab-text-compare").addEventListener("click", () => setTab("text-compare"));
 
   $("file-explore").addEventListener("change", async (e) => {
     const input = e.target;
@@ -1744,6 +2007,7 @@
   }
 
   $("btn-compare-now").addEventListener("click", () => compareNow());
+  $("btn-text-compare-now").addEventListener("click", () => compareTextNow());
 
   function onCompareFilterChange() {
     if (compareDiff === null) return;
@@ -1914,11 +2178,86 @@
   bindJsonDropZone($("drop-zone-compare-right"), (f) => ingestCompareSideFromFile("right", f));
   bindJsonDropZone($("drop-zone-explore"), (f) => ingestExploreFromFile(f));
 
+  function pickTextCompareFile(inputId) {
+    const el = $(inputId);
+    if (!el) return;
+    el.value = "";
+    el.click();
+  }
+
+  async function ingestTextCompareSideFromFile(side, file) {
+    if (!file) return;
+    const text = await readFileAsText(file);
+    const ta = side === "left" ? $("paste-text-left") : $("paste-text-right");
+    if (!ta) return;
+    ta.value = text;
+    textCompareDiff = null;
+    updateTextCompareCTA();
+    rerenderTextCompare();
+  }
+
+  $("btn-text-left-upload").addEventListener("click", () => pickTextCompareFile("file-text-left"));
+  $("btn-text-right-upload").addEventListener("click", () => pickTextCompareFile("file-text-right"));
+  $("btn-text-left-clear").addEventListener("click", () => {
+    $("paste-text-left").value = "";
+    textCompareDiff = null;
+    updateTextCompareCTA();
+    rerenderTextCompare();
+  });
+  $("btn-text-right-clear").addEventListener("click", () => {
+    $("paste-text-right").value = "";
+    textCompareDiff = null;
+    updateTextCompareCTA();
+    rerenderTextCompare();
+  });
+  $("paste-text-left").addEventListener("input", () => {
+    textCompareDiff = null;
+    updateTextCompareCTA();
+    rerenderTextCompare();
+  });
+  $("paste-text-right").addEventListener("input", () => {
+    textCompareDiff = null;
+    updateTextCompareCTA();
+    rerenderTextCompare();
+  });
+  $("text-compare-case-sensitive").addEventListener("change", () => {
+    if (textCompareDiff) compareTextNow();
+    else updateTextCompareCTA();
+  });
+  $("text-compare-ignore-whitespace").addEventListener("change", () => {
+    if (textCompareDiff) compareTextNow();
+    else updateTextCompareCTA();
+  });
+
+  $("file-text-left").addEventListener("change", async (e) => {
+    const input = e.target;
+    const f = input.files && input.files[0];
+    if (!f) {
+      input.value = "";
+      return;
+    }
+    await ingestTextCompareSideFromFile("left", f);
+    input.value = "";
+  });
+
+  $("file-text-right").addEventListener("change", async (e) => {
+    const input = e.target;
+    const f = input.files && input.files[0];
+    if (!f) {
+      input.value = "";
+      return;
+    }
+    await ingestTextCompareSideFromFile("right", f);
+    input.value = "";
+  });
+
   initThemeToggle();
 
   setTab("compare");
   rerenderCompare();
   rerenderExplore();
+  rerenderTextCompare();
+  updateTextCompareCTA();
 
   bindEditorGutter("paste-compare-left", "gutter-compare-left");
   bindEditorGutter("paste-compare-right", "gutter-compare-right");
