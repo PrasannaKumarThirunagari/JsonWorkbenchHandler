@@ -5,8 +5,26 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["ui-sans-serif", "system-ui", "Segoe UI", "sans-serif"],
-        mono: ["ui-monospace", "Cascadia Code", "Consolas", "monospace"],
+        sans: [
+          "ui-sans-serif",
+          "system-ui",
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "Segoe UI",
+          "Roboto",
+          "Helvetica Neue",
+          "Arial",
+          "sans-serif",
+        ],
+        mono: [
+          "ui-monospace",
+          "SFMono-Regular",
+          "Cascadia Code",
+          "Consolas",
+          "Menlo",
+          "Monaco",
+          "monospace",
+        ],
       },
       boxShadow: {
         soft: "0 1px 3px 0 rgb(0 0 0 / 0.04), 0 4px 12px -2px rgb(0 0 0 / 0.06)",

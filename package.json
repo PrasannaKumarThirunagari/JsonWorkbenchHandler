@@ -2,7 +2,8 @@
   "name": "json-intelligence",
   "private": true,
   "scripts": {
-    "build:css": "tailwindcss -i ./tailwind-input.css -o ./styles.css --minify"
+    "build:css": "tailwindcss -i ./tailwind-input.css -o ./styles.css --minify",
+    "sync:extension": "node scripts/sync-extension.mjs"
   },
   "devDependencies": {
     "tailwindcss": "^3.4.17"

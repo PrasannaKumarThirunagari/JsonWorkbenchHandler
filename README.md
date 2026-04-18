@@ -71,8 +71,18 @@ Visit `http://localhost:8080` and open `index.html` if the server lists the dire
 The **same** `index.html` and assets work as a static site and as an **unpacked** / **temporary** extension:
 
 1. Ensure `styles.css` exists (run `npm run build:css` from the project root if needed).
-2. **Chrome / Edge:** `chrome://extensions` → Developer mode → **Load unpacked** → select this project folder (where `manifest.json` lives).
+2. **Chrome / Edge:** `chrome://extensions` → Developer mode → **Load unpacked** → select this project folder (where `manifest.json` lives next to `index.html`).
 3. **Firefox:** `about:debugging#/runtime/this-firefox` → **Load Temporary Add-on** → choose `manifest.json` in this folder.
+
+### Optional: `extensions/unpacked/` copy
+
+To mirror the latest shippable files under **`extensions/unpacked/`** (for zips, QA, or loading that path instead of the repo root), run:
+
+```bash
+npm run sync:extension
+```
+
+Then **Load unpacked** from **`extensions/unpacked`** (or pick `extensions/unpacked/manifest.json` in Firefox). See `extensions/README.md`.
 
 Click the toolbar button to open the app in a new tab. For Firefox signing or a permanent add-on id, change `browser_specific_settings.gecko.id` in `manifest.json` to your own id before publishing.
 
