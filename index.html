@@ -4,55 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Json Intelligence</title>
-    <script>
-      try {
-        var t = localStorage.getItem("ji-theme");
-        if (t === "dark") document.documentElement.classList.add("dark");
-        else if (t === "light") document.documentElement.classList.remove("dark");
-        else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
-          document.documentElement.classList.add("dark");
-      } catch (e) {}
-    </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400..700;1,14..32,400..700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap"
-      rel="stylesheet"
-    />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: ['"Inter"', "ui-sans-serif", "system-ui", "sans-serif"],
-              mono: ['"JetBrains Mono"', "ui-monospace", "Consolas", "monospace"],
-            },
-            boxShadow: {
-              soft: "0 1px 3px 0 rgb(0 0 0 / 0.04), 0 4px 12px -2px rgb(0 0 0 / 0.06)",
-              dropdown: "0 4px 6px -1px rgb(0 0 0 / 0.05), 0 12px 24px -4px rgb(0 0 0 / 0.08)",
-            },
-          },
-        },
-      };
-    </script>
-    <style>
-      html {
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-      }
-      .path-select-listbox {
-        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 16px 32px -8px rgb(0 0 0 / 0.1);
-      }
-      .drop-zone-active {
-        box-shadow: inset 0 0 0 2px rgb(16 185 129 / 0.55);
-        background-color: rgb(16 185 129 / 0.04);
-      }
-      .dark .drop-zone-active {
-        background-color: rgb(16 185 129 / 0.08);
-      }
-    </style>
+    <script src="theme-init.js"></script>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="app-extra.css" />
   </head>
   <body
     class="flex min-h-full flex-col bg-zinc-50 font-sans text-zinc-900 antialiased transition-colors duration-200 dark:bg-zinc-950 dark:text-zinc-100"
@@ -60,7 +14,7 @@
     <header
       class="sticky top-0 z-40 shrink-0 border-b border-zinc-200/90 bg-white/80 shadow-[0_1px_0_0_rgb(0_0_0/0.03)] backdrop-blur-xl dark:border-zinc-800/90 dark:bg-zinc-950/80 dark:shadow-[0_1px_0_0_rgb(255_255_255/0.04)]"
     >
-      <div class="flex w-full items-center justify-between gap-4 px-5 py-3.5 sm:px-8 lg:px-12">
+      <div class="flex w-full items-center justify-between gap-4 px-4 py-2.5 sm:px-6 lg:px-10">
         <div class="flex min-w-0 items-center gap-4">
           <span
             class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-600 text-sm font-bold text-white shadow-md shadow-emerald-600/25 ring-1 ring-emerald-500/30 dark:bg-emerald-500 dark:shadow-emerald-500/20"
@@ -95,14 +49,14 @@
 
     <main class="flex w-full min-w-0 flex-1 flex-col lg:flex-row">
       <aside
-        class="shrink-0 border-b border-zinc-200 bg-white/70 dark:border-zinc-800 dark:bg-zinc-900/50 lg:sticky lg:top-[52px] lg:z-30 lg:flex lg:w-60 lg:flex-col lg:self-start lg:border-b-0 lg:border-r lg:border-zinc-200/90 lg:bg-zinc-50/90 lg:px-4 lg:py-8 dark:lg:border-zinc-800 dark:lg:bg-zinc-950/80"
+        class="shrink-0 border-b border-zinc-200 bg-white/70 dark:border-zinc-800 dark:bg-zinc-900/50 lg:sticky lg:top-[52px] lg:z-30 lg:flex lg:w-60 lg:flex-col lg:self-start lg:border-b-0 lg:border-r lg:border-zinc-200/90 lg:bg-zinc-50/90 lg:px-4 lg:py-4 dark:lg:border-zinc-800 dark:lg:bg-zinc-950/80"
         aria-label="Main sections"
       >
-        <p class="mb-4 hidden px-1 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500 lg:block">
+        <p class="mb-2 hidden px-1 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500 lg:block">
           Menu
         </p>
         <nav
-          class="flex gap-1.5 overflow-x-auto px-1 py-3 [-ms-overflow-style:none] [scrollbar-width:none] sm:px-4 lg:flex-col lg:gap-1 lg:overflow-visible lg:px-0 lg:py-0 [&::-webkit-scrollbar]:hidden"
+          class="flex gap-1.5 overflow-x-auto px-1 py-2 [-ms-overflow-style:none] [scrollbar-width:none] sm:px-4 lg:flex-col lg:gap-1 lg:overflow-visible lg:px-0 lg:py-0 [&::-webkit-scrollbar]:hidden"
           role="tablist"
           aria-label="Main"
         >
@@ -117,7 +71,7 @@
             <svg class="h-[18px] w-[18px] shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
             </svg>
-            <span>Compare</span>
+            <span>Json Compare</span>
           </button>
           <button
             type="button"
@@ -130,7 +84,7 @@
             <svg class="h-[18px] w-[18px] shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h10M4 18h10" />
             </svg>
-            <span>Explore</span>
+            <span>Json Explore</span>
           </button>
           <button
             type="button"
@@ -149,12 +103,13 @@
       </aside>
 
       <div
-        class="min-h-0 min-w-0 flex-1 bg-[radial-gradient(ellipse_120%_80%_at_50%_-40%,rgba(16,185,129,0.07),transparent_55%)] px-5 py-8 dark:bg-[radial-gradient(ellipse_120%_80%_at_50%_-40%,rgba(16,185,129,0.11),transparent_55%)] sm:px-8 lg:px-12 lg:py-10"
+        class="min-h-0 min-w-0 flex-1 bg-[radial-gradient(ellipse_120%_80%_at_50%_-40%,rgba(16,185,129,0.07),transparent_55%)] px-4 py-4 dark:bg-[radial-gradient(ellipse_120%_80%_at_50%_-40%,rgba(16,185,129,0.11),transparent_55%)] sm:px-6 lg:px-10 lg:py-5"
       >
       <!-- Compare -->
-      <section id="panel-compare" role="tabpanel" aria-labelledby="tab-compare" class="mx-auto w-full max-w-none space-y-8">
+      <section id="panel-compare" role="tabpanel" aria-labelledby="tab-compare" class="mx-auto w-full max-w-none space-y-3">
+        <h2 class="text-base font-semibold tracking-tight text-zinc-900 dark:text-white">Json Compare</h2>
         <div
-          class="flex min-w-0 flex-col gap-4 rounded-2xl border border-zinc-200/90 bg-white/90 p-5 shadow-sm backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-900/90 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-6 sm:p-6"
+          class="flex min-w-0 flex-col gap-3 rounded-2xl border border-zinc-200/90 bg-white/90 p-3 shadow-sm backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-900/90 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4 sm:p-4"
           role="toolbar"
           aria-label="Compare actions and filters"
         >
@@ -209,7 +164,7 @@
             <!-- First JSON editor -->
             <div class="flex min-w-0 flex-col overflow-hidden">
               <div
-                class="flex min-w-0 flex-wrap items-center justify-between gap-3 border-b border-zinc-200 bg-zinc-50/80 px-5 py-3.5 dark:border-zinc-800 dark:bg-zinc-950/40"
+                class="flex min-w-0 flex-wrap items-center justify-between gap-2 border-b border-zinc-200 bg-zinc-50/80 px-4 py-2.5 dark:border-zinc-800 dark:bg-zinc-950/40"
               >
                 <div class="flex min-w-0 items-center gap-2">
                   <span
@@ -287,12 +242,12 @@
                 </button>
                 </div>
               </div>
-              <div class="flex flex-col gap-3 px-5 pb-5 pt-3">
+              <div class="flex flex-col gap-2 px-4 pb-4 pt-2">
                 <p class="sr-only" id="drop-hint-left">Drop a JSON file here or paste below</p>
                 <div
                   id="drop-zone-compare-left"
                   aria-describedby="drop-hint-left"
-                  class="drop-zone flex min-h-[min(52vh,520px)] max-h-[min(70vh,720px)] overflow-hidden rounded-lg border border-zinc-200/90 bg-zinc-50/50 shadow-inner transition-shadow duration-150 dark:border-zinc-700/80 dark:bg-zinc-950/40"
+                  class="drop-zone flex min-h-[min(38vh,380px)] max-h-[min(62vh,640px)] overflow-hidden rounded-lg border border-zinc-200/90 bg-zinc-50/50 shadow-inner transition-shadow duration-150 dark:border-zinc-700/80 dark:bg-zinc-950/40"
                 >
                   <div
                     id="gutter-compare-left"
@@ -344,7 +299,7 @@
             <!-- Right: second JSON input -->
             <div class="flex min-w-0 flex-col overflow-hidden">
               <div
-                class="flex min-w-0 flex-wrap items-center justify-between gap-3 border-b border-zinc-200 bg-zinc-50/80 px-5 py-3.5 dark:border-zinc-800 dark:bg-zinc-950/40"
+                class="flex min-w-0 flex-wrap items-center justify-between gap-2 border-b border-zinc-200 bg-zinc-50/80 px-4 py-2.5 dark:border-zinc-800 dark:bg-zinc-950/40"
               >
                 <div class="flex min-w-0 items-center gap-2">
                   <span
@@ -412,12 +367,12 @@
                 </button>
                 </div>
               </div>
-              <div class="flex flex-col gap-3 px-5 pb-5 pt-3">
+              <div class="flex flex-col gap-2 px-4 pb-4 pt-2">
                 <p class="sr-only" id="drop-hint-right">Drop a JSON file here or paste below</p>
                 <div
                   id="drop-zone-compare-right"
                   aria-describedby="drop-hint-right"
-                  class="drop-zone flex min-h-[min(52vh,520px)] max-h-[min(70vh,720px)] overflow-hidden rounded-lg border border-zinc-200/90 bg-zinc-50/50 shadow-inner transition-shadow duration-150 dark:border-zinc-700/80 dark:bg-zinc-950/40"
+                  class="drop-zone flex min-h-[min(38vh,380px)] max-h-[min(62vh,640px)] overflow-hidden rounded-lg border border-zinc-200/90 bg-zinc-50/50 shadow-inner transition-shadow duration-150 dark:border-zinc-700/80 dark:bg-zinc-950/40"
                 >
                   <div
                     id="gutter-compare-right"
@@ -468,12 +423,12 @@
             </div>
 
             <div class="border-t border-zinc-200 bg-zinc-50/90 dark:border-zinc-800 dark:bg-zinc-950/60">
-              <div class="flex items-center justify-between gap-3 border-b border-zinc-200 px-6 py-3.5 dark:border-zinc-800">
+              <div class="flex items-center justify-between gap-2 border-b border-zinc-200 px-4 py-2 dark:border-zinc-800">
                 <h3 class="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-400">Diff output</h3>
               </div>
               <div
                 id="compare-diffs-inline-body"
-                class="max-h-[min(60vh,680px)] min-h-[160px] w-full overflow-auto bg-white px-6 py-6 font-mono text-[13px] leading-relaxed text-zinc-800 dark:bg-zinc-950/30 dark:text-zinc-200 sm:text-sm"
+                class="max-h-[min(50vh,520px)] min-h-[120px] w-full overflow-auto bg-white px-4 py-3 font-mono text-[13px] leading-relaxed text-zinc-800 dark:bg-zinc-950/30 dark:text-zinc-200 sm:text-sm"
               ></div>
             </div>
           </div>
@@ -481,18 +436,13 @@
       </section>
 
       <!-- Explore -->
-      <section id="panel-explore" role="tabpanel" aria-labelledby="tab-explore" class="mx-auto hidden w-full max-w-none space-y-8">
-        <header class="max-w-4xl">
-          <h2 class="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white sm:text-3xl">Explore JSON</h2>
-          <p class="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
-            Parse a payload, search keys and values, jump to paths, and open an interactive graph. Built for inspection workflows.
-          </p>
-        </header>
+      <section id="panel-explore" role="tabpanel" aria-labelledby="tab-explore" class="mx-auto hidden w-full max-w-none space-y-3">
+        <h2 class="text-base font-semibold tracking-tight text-zinc-900 dark:text-white">Json Explore</h2>
         <div
           id="drop-zone-explore"
-          class="drop-zone rounded-2xl border border-zinc-200/90 bg-white/90 p-6 shadow-sm backdrop-blur-sm transition-shadow duration-150 dark:border-zinc-800 dark:bg-zinc-900/90 sm:p-8"
+          class="drop-zone rounded-2xl border border-zinc-200/90 bg-white/90 p-4 shadow-sm backdrop-blur-sm transition-shadow duration-150 dark:border-zinc-800 dark:bg-zinc-900/90 sm:p-5"
         >
-          <div class="grid min-w-0 gap-6 lg:grid-cols-12 lg:items-end">
+          <div class="grid min-w-0 gap-4 lg:grid-cols-12 lg:items-end">
             <div class="flex flex-col gap-3 lg:col-span-4">
               <span class="text-xs font-medium text-zinc-500 dark:text-zinc-400">File</span>
               <div class="flex flex-wrap items-center gap-2">
@@ -547,12 +497,12 @@
           class="hidden rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 shadow-sm dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-200"
         ></p>
 
-        <div class="rounded-2xl border border-zinc-200/90 bg-white/90 p-6 shadow-sm backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-900/90 sm:p-8">
-          <div class="mb-6 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-            <h2 class="text-lg font-semibold text-zinc-900 dark:text-white">Tree browser</h2>
-            <p class="text-xs text-zinc-500 dark:text-zinc-400">Search, filter paths, expand nodes</p>
+        <div class="rounded-2xl border border-zinc-200/90 bg-white/90 p-4 shadow-sm backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-900/90 sm:p-5">
+          <div class="mb-3 flex flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between">
+            <h3 class="text-sm font-semibold text-zinc-900 dark:text-white">Tree browser</h3>
+            <p class="text-xs text-zinc-500 dark:text-zinc-400">Search, paths, expand</p>
           </div>
-          <div class="grid min-w-0 gap-6 lg:grid-cols-2">
+          <div class="grid min-w-0 gap-4 lg:grid-cols-2">
             <label class="flex min-w-0 flex-col gap-2">
               <span class="text-xs font-medium text-zinc-500 dark:text-zinc-400">Search keys &amp; values</span>
               <input
@@ -587,26 +537,21 @@
               </div>
             </div>
           </div>
-          <div class="mt-8 rounded-xl border border-zinc-200/80 bg-zinc-100/50 p-1.5 shadow-inner dark:border-zinc-800 dark:bg-zinc-950/40">
+          <div class="mt-4 rounded-xl border border-zinc-200/80 bg-zinc-100/50 p-1.5 shadow-inner dark:border-zinc-800 dark:bg-zinc-950/40">
             <div
               id="tree-explore"
-              class="json-tree max-h-[min(75vh,800px)] min-h-[200px] w-full overflow-auto rounded-lg bg-white px-5 py-4 font-mono text-[13px] leading-relaxed text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 sm:text-sm"
+              class="json-tree max-h-[min(58vh,640px)] min-h-[160px] w-full overflow-auto rounded-lg bg-white px-4 py-3 font-mono text-[13px] leading-relaxed text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 sm:text-sm"
             ></div>
           </div>
         </div>
       </section>
 
       <!-- Text compare -->
-      <section id="panel-text-compare" role="tabpanel" aria-labelledby="tab-text-compare" class="mx-auto hidden w-full max-w-none space-y-8">
-        <header class="max-w-4xl">
-          <h2 class="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white sm:text-3xl">Text File Compare</h2>
-          <p class="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
-            Compare any two text files line by line with optional case-sensitive matching and whitespace ignoring.
-          </p>
-        </header>
+      <section id="panel-text-compare" role="tabpanel" aria-labelledby="tab-text-compare" class="mx-auto hidden w-full max-w-none space-y-3">
+        <h2 class="text-base font-semibold tracking-tight text-zinc-900 dark:text-white">Text compare</h2>
 
         <div
-          class="flex min-w-0 flex-col gap-4 rounded-2xl border border-zinc-200/90 bg-white/90 p-5 shadow-sm backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-900/90 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-6 sm:p-6"
+          class="flex min-w-0 flex-col gap-3 rounded-2xl border border-zinc-200/90 bg-white/90 p-3 shadow-sm backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-900/90 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4 sm:p-4"
           role="toolbar"
           aria-label="Text compare controls"
         >
@@ -640,6 +585,15 @@
                 />
                 <span class="text-xs text-zinc-700 dark:text-zinc-300">Ignore whitespace</span>
               </label>
+              <label class="flex cursor-pointer items-center gap-2 select-none">
+                <input
+                  type="checkbox"
+                  id="text-compare-diff-only"
+                  checked
+                  class="h-4 w-4 shrink-0 rounded border-zinc-300 text-emerald-500 focus:ring-emerald-500 dark:border-zinc-600 dark:bg-zinc-900"
+                />
+                <span class="text-xs text-zinc-700 dark:text-zinc-300" title="Hide unchanged lines in the output below">Diff only</span>
+              </label>
             </div>
           </div>
           <p
@@ -651,7 +605,7 @@
         <div class="overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-[0_1px_3px_rgb(0_0_0/0.04),0_12px_32px_-8px_rgb(0_0_0/0.1)] dark:border-zinc-800 dark:bg-zinc-900 dark:shadow-[0_1px_0_rgb(255_255_255/0.04)_inset]">
           <div class="grid min-h-0 min-w-0 lg:grid-cols-2 lg:divide-x lg:divide-zinc-200 dark:lg:divide-zinc-800">
             <div class="flex min-w-0 flex-col overflow-hidden">
-              <div class="flex min-w-0 flex-wrap items-center justify-between gap-3 border-b border-zinc-200 bg-zinc-50/80 px-5 py-3.5 dark:border-zinc-800 dark:bg-zinc-950/40">
+              <div class="flex min-w-0 flex-wrap items-center justify-between gap-2 border-b border-zinc-200 bg-zinc-50/80 px-4 py-2.5 dark:border-zinc-800 dark:bg-zinc-950/40">
                 <p class="min-w-0 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Left file</p>
                 <div class="flex min-w-0 flex-wrap items-center gap-2">
                   <input type="file" id="file-text-left" class="hidden" />
@@ -671,18 +625,18 @@
                   </button>
                 </div>
               </div>
-              <div class="p-5">
+              <div class="p-3 sm:p-4">
                 <textarea
                   id="paste-text-left"
-                  rows="16"
+                  rows="10"
                   placeholder="Paste left text or upload a file..."
-                  class="min-h-[360px] w-full resize-y rounded-xl border border-zinc-200 bg-zinc-50/80 px-4 py-3 font-mono text-sm leading-relaxed text-zinc-900 placeholder:text-zinc-400 shadow-inner focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/15 dark:border-zinc-700 dark:bg-zinc-950/50 dark:text-zinc-100 dark:focus:bg-zinc-900"
+                  class="min-h-[220px] w-full resize-y rounded-xl border border-zinc-200 bg-zinc-50/80 px-3 py-2.5 font-mono text-sm leading-relaxed text-zinc-900 placeholder:text-zinc-400 shadow-inner focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/15 dark:border-zinc-700 dark:bg-zinc-950/50 dark:text-zinc-100 dark:focus:bg-zinc-900"
                 ></textarea>
               </div>
             </div>
 
             <div class="flex min-w-0 flex-col overflow-hidden">
-              <div class="flex min-w-0 flex-wrap items-center justify-between gap-3 border-b border-zinc-200 bg-zinc-50/80 px-5 py-3.5 dark:border-zinc-800 dark:bg-zinc-950/40">
+              <div class="flex min-w-0 flex-wrap items-center justify-between gap-2 border-b border-zinc-200 bg-zinc-50/80 px-4 py-2.5 dark:border-zinc-800 dark:bg-zinc-950/40">
                 <p class="min-w-0 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Right file</p>
                 <div class="flex min-w-0 flex-wrap items-center gap-2">
                   <input type="file" id="file-text-right" class="hidden" />
@@ -702,24 +656,24 @@
                   </button>
                 </div>
               </div>
-              <div class="p-5">
+              <div class="p-3 sm:p-4">
                 <textarea
                   id="paste-text-right"
-                  rows="16"
+                  rows="10"
                   placeholder="Paste right text or upload a file..."
-                  class="min-h-[360px] w-full resize-y rounded-xl border border-zinc-200 bg-zinc-50/80 px-4 py-3 font-mono text-sm leading-relaxed text-zinc-900 placeholder:text-zinc-400 shadow-inner focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/15 dark:border-zinc-700 dark:bg-zinc-950/50 dark:text-zinc-100 dark:focus:bg-zinc-900"
+                  class="min-h-[220px] w-full resize-y rounded-xl border border-zinc-200 bg-zinc-50/80 px-3 py-2.5 font-mono text-sm leading-relaxed text-zinc-900 placeholder:text-zinc-400 shadow-inner focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/15 dark:border-zinc-700 dark:bg-zinc-950/50 dark:text-zinc-100 dark:focus:bg-zinc-900"
                 ></textarea>
               </div>
             </div>
           </div>
 
           <div class="border-t border-zinc-200 bg-zinc-50/90 dark:border-zinc-800 dark:bg-zinc-950/60">
-            <div class="flex items-center justify-between gap-3 border-b border-zinc-200 px-6 py-3.5 dark:border-zinc-800">
+            <div class="flex items-center justify-between gap-2 border-b border-zinc-200 px-4 py-2 dark:border-zinc-800">
               <h3 class="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-400">Line diff output</h3>
             </div>
             <div
               id="text-compare-results"
-              class="max-h-[min(60vh,680px)] min-h-[160px] w-full overflow-auto bg-white px-6 py-6 font-mono text-[13px] leading-relaxed text-zinc-800 dark:bg-zinc-950/30 dark:text-zinc-200 sm:text-sm"
+              class="max-h-[min(48vh,480px)] min-h-[100px] w-full overflow-auto bg-white px-4 py-3 font-mono text-[13px] leading-relaxed text-zinc-800 dark:bg-zinc-950/30 dark:text-zinc-200 sm:text-sm"
             ></div>
           </div>
         </div>

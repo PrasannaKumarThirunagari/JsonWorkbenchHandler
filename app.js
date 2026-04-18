@@ -954,6 +954,11 @@
     };
   }
 
+  function getTextCompareDiffOnly() {
+    const el = $("text-compare-diff-only");
+    return !el || el.checked;
+  }
+
   function normalizeTextCompareLine(line, opts) {
     let out = String(line);
     if (opts.ignoreWhitespace) out = out.replace(/\s+/g, "");
@@ -1116,7 +1121,17 @@
       return;
     }
 
-    body.innerHTML = textCompareDiff.rows
+    const diffOnly = getTextCompareDiffOnly();
+    const rowsToRender = diffOnly
+      ? textCompareDiff.rows.filter((row) => row.type !== "same")
+      : textCompareDiff.rows;
+    if (rowsToRender.length === 0) {
+      body.innerHTML =
+        '<p class="py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">Nothing to show for this view.</p>';
+      return;
+    }
+
+    body.innerHTML = rowsToRender
       .map((row) => {
         const tone =
           row.type === "same"
@@ -2227,6 +2242,9 @@
   $("text-compare-ignore-whitespace").addEventListener("change", () => {
     if (textCompareDiff) compareTextNow();
     else updateTextCompareCTA();
+  });
+  $("text-compare-diff-only").addEventListener("change", () => {
+    if (textCompareDiff) rerenderTextCompare();
   });
 
   $("file-text-left").addEventListener("change", async (e) => {
