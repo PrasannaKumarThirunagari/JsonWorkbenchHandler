@@ -1655,6 +1655,30 @@
     rerenderExplore();
   });
 
+  function applyExploreTextAction(action) {
+    const ta = $("paste-explore");
+    const text = ta ? (ta.value || "").trim() : "";
+    if (!text) {
+      showError($("explore-error"), "Paste JSON first.");
+      return;
+    }
+    const parsed = parseJsonDetailed(text);
+    if (parsed.error) {
+      showError($("explore-error"), "❌ " + parsed.error);
+      return;
+    }
+    showError($("explore-error"), "✔ Valid JSON");
+    if (action === "minify") ta.value = JSON.stringify(parsed.value);
+    else if (action === "beautify") ta.value = JSON.stringify(parsed.value, null, FORMAT_JSON_INDENT);
+    exploreData = parsed.value;
+    exploreCollapsed = new Set();
+    fillPathSelect(parsed.value);
+    rerenderExplore();
+  }
+
+  $("btn-explore-validate").addEventListener("click", () => applyExploreTextAction("validate"));
+  $("btn-explore-minify").addEventListener("click", () => applyExploreTextAction("minify"));
+
   $("search-explore").addEventListener("input", () => rerenderExplore());
 
   initPathSelectCombo();
@@ -1737,6 +1761,45 @@
     updateCompareCTA();
     rerenderCompare();
     refreshCompareLineGutters();
+  }
+
+  function applyMinifyCompareSide(side) {
+    const ta = side === "left" ? $("paste-compare-left") : $("paste-compare-right");
+    const text = (ta.value || "").trim();
+    if (!text) return;
+    const parsed = parseJsonDetailed(text);
+    if (parsed.error) return setValidate(side, false, "❌ " + parsed.error);
+    ta.value = JSON.stringify(parsed.value);
+    if (side === "left") compareLeft = parsed.value;
+    else compareRight = parsed.value;
+    compareDiff = null;
+    setValidate(side, true, "✔ Valid JSON");
+    updateCompareCTA();
+    rerenderCompare();
+    refreshCompareLineGutters();
+  }
+
+  function applyValidateCompareSide(side) {
+    const ta = side === "left" ? $("paste-compare-left") : $("paste-compare-right");
+    const text = (ta.value || "").trim();
+    if (!text) {
+      setValidate(side, false, "");
+      return;
+    }
+    const parsed = parseJsonDetailed(text);
+    if (parsed.error) {
+      if (side === "left") compareLeft = null;
+      else compareRight = null;
+      compareDiff = null;
+      setValidate(side, false, "❌ " + parsed.error);
+    } else {
+      if (side === "left") compareLeft = parsed.value;
+      else compareRight = parsed.value;
+      compareDiff = null;
+      setValidate(side, true, "✔ Valid JSON");
+    }
+    updateCompareCTA();
+    rerenderCompare();
   }
 
   function copyCompareTextarea(side) {
@@ -2449,6 +2512,8 @@
 
   // Format/Clear
   $("btn-format-compare-left").addEventListener("click", () => applyFormatCompareSide("left"));
+  $("btn-minify-compare-left").addEventListener("click", () => applyMinifyCompareSide("left"));
+  $("btn-validate-compare-left").addEventListener("click", () => applyValidateCompareSide("left"));
   $("btn-clear-compare-left").addEventListener("click", () => {
     $("paste-compare-left").value = "";
     compareLeft = null;
@@ -2460,6 +2525,8 @@
   });
 
   $("btn-format-compare-right").addEventListener("click", () => applyFormatCompareSide("right"));
+  $("btn-minify-compare-right").addEventListener("click", () => applyMinifyCompareSide("right"));
+  $("btn-validate-compare-right").addEventListener("click", () => applyValidateCompareSide("right"));
   $("btn-clear-compare-right").addEventListener("click", () => {
     $("paste-compare-right").value = "";
     compareRight = null;

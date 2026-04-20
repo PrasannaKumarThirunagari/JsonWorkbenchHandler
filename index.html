@@ -105,35 +105,9 @@
         class="ji-app-root ji-workspace min-h-0 min-w-0 flex-1 bg-zinc-50/80 px-4 py-4 dark:bg-zinc-950 sm:px-6 lg:px-10 lg:py-5"
       >
       <!-- Compare -->
-      <section id="panel-compare" role="tabpanel" aria-labelledby="tab-compare" class="relative mx-auto w-full max-w-none space-y-3">
+      <section id="panel-compare" role="tabpanel" aria-labelledby="tab-compare" class="relative mx-auto w-full max-w-none space-y-4">
         <a href="#compare-split" class="ji-skip-link">Skip to editors</a>
         <h2 class="sr-only">Json Compare</h2>
-        <div
-          id="compare-get-started"
-          class="hidden rounded-xl border border-emerald-200/80 bg-emerald-50/60 p-3 shadow-sm dark:border-emerald-900/40 dark:bg-emerald-950/30 sm:p-4"
-          role="region"
-          aria-label="Getting started"
-        >
-          <div class="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div class="min-w-0">
-              <p class="text-sm font-semibold text-emerald-950 dark:text-emerald-100">First run — about 60 seconds</p>
-              <ol class="mt-2 list-decimal space-y-1 pl-5 text-xs leading-relaxed text-zinc-700 dark:text-zinc-300">
-                <li>Paste or upload <strong>left</strong> JSON</li>
-                <li>Paste or upload <strong>right</strong> JSON</li>
-                <li>Press <kbd class="rounded border border-zinc-300 bg-white px-1 font-mono text-[10px] dark:border-zinc-600 dark:bg-zinc-900">Ctrl</kbd> or <kbd class="rounded border border-zinc-300 bg-white px-1 font-mono text-[10px] dark:border-zinc-600 dark:bg-zinc-900">⌘</kbd> plus <kbd class="rounded border border-zinc-300 bg-white px-1 font-mono text-[10px] dark:border-zinc-600 dark:bg-zinc-900">Enter</kbd>, or click <strong>Run comparison</strong></li>
-                <li>Review the diff in the panel below the editors</li>
-              </ol>
-            </div>
-            <div class="flex shrink-0 flex-wrap items-center gap-2">
-              <button type="button" id="btn-sample-both" class="ji-btn-primary ji-btn-sm">
-                Load sample pair
-              </button>
-              <button type="button" id="btn-dismiss-get-started" class="ji-btn-secondary ji-btn-sm">
-                Dismiss
-              </button>
-            </div>
-          </div>
-        </div>
         <div class="ji-toolbar" role="toolbar" aria-label="Compare actions and filters">
           <div class="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
             <div class="flex flex-wrap items-center gap-2">
@@ -245,7 +219,7 @@
                 </button>
                 </div>
               </div>
-              <div class="flex flex-col gap-2 px-4 pb-4 pt-2">
+              <div class="flex flex-col gap-2.5 px-4 pb-4 pt-2.5">
                 <p class="sr-only" id="drop-hint-left">Drop a JSON file here or paste below</p>
                 <div
                   id="drop-zone-compare-left"
@@ -261,9 +235,11 @@
                   ></textarea>
                 </div>
                 <p id="validate-compare-left" class="hidden px-0.5 text-xs font-medium"></p>
-                <div class="flex flex-wrap items-center justify-end gap-2 border-t border-zinc-200/90 pt-3 dark:border-zinc-800">
+                <div class="flex flex-wrap items-center justify-end gap-2.5 border-t border-zinc-200/90 pt-3.5 dark:border-zinc-800">
                   <div class="flex shrink-0 flex-wrap justify-end gap-2">
-                    <button type="button" id="btn-format-compare-left" class="ji-btn-secondary ji-btn-sm">Format</button>
+                    <button type="button" id="btn-format-compare-left" class="ji-btn-secondary ji-btn-sm">Beautify</button>
+                    <button type="button" id="btn-minify-compare-left" class="ji-btn-secondary ji-btn-sm">Minify</button>
+                    <button type="button" id="btn-validate-compare-left" class="ji-btn-secondary ji-btn-sm">Validate</button>
                     <button type="button" id="btn-clear-compare-left" class="ji-btn-secondary ji-btn-sm">Clear</button>
                     <button type="button" id="btn-cmp-left-json-viewer" title="Open JSON graph map (horizontal)" class="ji-btn-accent">
                       <svg class="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -308,7 +284,7 @@
                 </button>
                 </div>
               </div>
-              <div class="flex flex-col gap-2 px-4 pb-4 pt-2">
+              <div class="flex flex-col gap-2.5 px-4 pb-4 pt-2.5">
                 <p class="sr-only" id="drop-hint-right">Drop a JSON file here or paste below</p>
                 <div
                   id="drop-zone-compare-right"
@@ -324,9 +300,11 @@
                   ></textarea>
                 </div>
                 <p id="validate-compare-right" class="hidden px-0.5 text-xs font-medium"></p>
-                <div class="flex flex-wrap items-center justify-end gap-2 border-t border-zinc-200/90 pt-3 dark:border-zinc-800">
+                <div class="flex flex-wrap items-center justify-end gap-2.5 border-t border-zinc-200/90 pt-3.5 dark:border-zinc-800">
                   <div class="flex shrink-0 flex-wrap justify-end gap-2">
-                    <button type="button" id="btn-format-compare-right" class="ji-btn-secondary ji-btn-sm">Format</button>
+                    <button type="button" id="btn-format-compare-right" class="ji-btn-secondary ji-btn-sm">Beautify</button>
+                    <button type="button" id="btn-minify-compare-right" class="ji-btn-secondary ji-btn-sm">Minify</button>
+                    <button type="button" id="btn-validate-compare-right" class="ji-btn-secondary ji-btn-sm">Validate</button>
                     <button type="button" id="btn-clear-compare-right" class="ji-btn-secondary ji-btn-sm">Clear</button>
                     <button type="button" id="btn-cmp-right-json-viewer" title="Open JSON graph map (horizontal)" class="ji-btn-accent">
                       <svg class="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -341,12 +319,12 @@
             </div>
 
             <div class="border-t border-zinc-200/90 bg-zinc-50/80 dark:border-zinc-800 dark:bg-zinc-950/40">
-              <div class="flex items-center justify-between gap-2 border-b border-zinc-200/90 px-3 py-2 dark:border-zinc-800 sm:px-4">
+              <div class="flex items-center justify-between gap-2 border-b border-zinc-200/90 px-4 py-2.5 dark:border-zinc-800">
                 <h3 class="ji-section-heading">Diff output</h3>
               </div>
               <div
                 id="compare-diffs-inline-body"
-                class="ji-mono max-h-[min(50vh,520px)] min-h-[120px] w-full overflow-auto bg-white px-3 py-3 leading-relaxed text-zinc-800 dark:bg-zinc-950/30 dark:text-zinc-200 sm:px-4"
+                class="ji-output-pane"
               ></div>
             </div>
           </div>
@@ -354,7 +332,7 @@
       </section>
 
       <!-- Explore -->
-      <section id="panel-explore" role="tabpanel" aria-labelledby="tab-explore" class="mx-auto hidden w-full max-w-none space-y-3">
+      <section id="panel-explore" role="tabpanel" aria-labelledby="tab-explore" class="mx-auto hidden w-full max-w-none space-y-4">
         <h2 class="sr-only">Json Explore</h2>
         <div id="drop-zone-explore" class="drop-zone ji-surface p-4 transition-shadow duration-150 sm:p-5">
           <div class="grid min-w-0 gap-4 lg:grid-cols-12 lg:items-end">
@@ -390,9 +368,13 @@
                     class="ji-input-mono min-h-[88px] w-full resize-y shadow-inner dark:bg-zinc-950/50"
                   ></textarea>
                 </label>
-                <button type="button" id="btn-parse-paste" class="ji-btn-primary shrink-0 px-8 sm:w-auto sm:self-end">
+                <div class="flex shrink-0 flex-wrap items-center gap-2 sm:w-auto sm:self-end">
+                  <button type="button" id="btn-explore-validate" class="ji-btn-secondary ji-btn-sm">Validate</button>
+                  <button type="button" id="btn-explore-minify" class="ji-btn-secondary ji-btn-sm">Minify</button>
+                  <button type="button" id="btn-parse-paste" class="ji-btn-primary px-6">
                   Parse JSON
-                </button>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -450,7 +432,7 @@
       </section>
 
       <!-- Text compare -->
-      <section id="panel-text-compare" role="tabpanel" aria-labelledby="tab-text-compare" class="mx-auto hidden w-full max-w-none space-y-3">
+      <section id="panel-text-compare" role="tabpanel" aria-labelledby="tab-text-compare" class="mx-auto hidden w-full max-w-none space-y-4">
         <h2 class="sr-only">Text Compare</h2>
 
         <div class="ji-toolbar" role="toolbar" aria-label="Text compare controls">
@@ -557,12 +539,12 @@
           </div>
 
           <div class="border-t border-zinc-200/90 bg-zinc-50/80 dark:border-zinc-800 dark:bg-zinc-950/40">
-            <div class="flex items-center justify-between gap-2 border-b border-zinc-200/90 px-3 py-2 dark:border-zinc-800 sm:px-4">
+            <div class="flex items-center justify-between gap-2 border-b border-zinc-200/90 px-4 py-2.5 dark:border-zinc-800">
               <h3 class="ji-section-heading">Line diff output</h3>
             </div>
             <div
               id="text-compare-results"
-              class="ji-mono max-h-[min(48vh,480px)] min-h-[100px] w-full overflow-auto bg-white px-3 py-3 leading-relaxed text-zinc-800 dark:bg-zinc-950/30 dark:text-zinc-200 sm:px-4"
+              class="ji-output-pane"
             ></div>
           </div>
         </div>
