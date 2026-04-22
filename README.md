@@ -37,3 +37,9 @@
 - Search keys and values instantly.
 - Jump directly to a JSON path.
 - Expand and collapse nested nodes for fast navigation.
+
+## Data Safety
+
+- Data is processed locally in your browser.
+- No JSON or text data is sent to external servers by this app.
+- Files and pasted content stay on your device unless you share them.
