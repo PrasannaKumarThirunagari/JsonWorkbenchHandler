@@ -1,141 +1,39 @@
-# JsonWorkbenchHandler · JsonIntelligence
+# JsonIntelligence
 
-<p align="center">
-  <strong>Compare, search, and traverse JSON — entirely in your browser.</strong>
-</p>
+## Import as Extension
 
-<p align="center">
-  <a href="https://github.com/PrasannaKumarThirunagari/JsonWorkbenchHandler">Repository</a>
-  ·
-  <a href="https://github.com/PrasannaKumarThirunagari">@PrasannaKumarThirunagari</a>
-</p>
+### Chrome
 
----
+1. Open `chrome://extensions`.
+2. Turn on **Developer mode**.
+3. Click **Load unpacked**.
+4. Select this project folder (the folder containing `manifest.json`).
 
-## Overview
+### Mozilla Firefox
 
-**JsonIntelligence** is a calm, fast single-page app for working with JSON: diff two documents side by side, then drill into one file with search, path jumping, and a compact tree. Styling is shipped as built **Tailwind CSS** (`styles.css`); run `npm run build:css` after you change layout classes if you need to regenerate it.
+1. Open `about:debugging#/runtime/this-firefox`.
+2. Click **Load Temporary Add-on**.
+3. Select `manifest.json` from this project folder.
 
----
+## Tab Features (Main)
 
-## Features
+### Compare JSON Tab
 
-### Compare JSON
+- Compare two JSON files side by side.
+- Show added, removed, and changed values.
+- Format JSON for clean readability.
+- Upload, paste, clear, and copy JSON quickly.
 
-- Two editors with **line-number gutters**, **upload**, **copy / paste / cut / clear**, and **format** (2-space pretty-print).
-- **Compare JSON** builds a structural diff; results render in the **same card** below the editors (no pop-out diff window).
-- **Show** filters: toggle **key / property changes** (added & removed) and **value changes** independently; status text reflects what’s visible vs total.
-- **Deep nesting** is supported in the diff model and viewer (including arrays).
-- Optional **preview** and **download** on the right editor.
+### Text Compare Tab
 
-### Text compare
+- Compare plain text in two panels.
+- View only changed lines or full output.
+- Use ignore whitespace and case-sensitive options.
+- Upload or paste text directly.
 
-- Two panes with **upload** or paste, **case sensitive** and **ignore whitespace** options, and **Diff only** vs **show all lines** for the line diff output.
+### Search & Traverse Tab
 
-### Search & traverse
-
-- Load JSON via **file** or **paste**, then **Parse pasted**.
-- **Search** filters the tree by key or value text.
-- **Jump to path** jumps and expands the tree to a chosen JSON path.
-- **Tight tree indentation** for readable deep structures; collapse / expand per node.
-
----
-
-## Quick start
-
-```bash
-git clone https://github.com/PrasannaKumarThirunagari/JsonWorkbenchHandler.git
-cd JsonWorkbenchHandler
-```
-
-Then open **`index.html`** in a modern browser (Chrome, Edge, Firefox, Safari). The repo includes a prebuilt **`styles.css`**; if it is missing, run `npm install` once, then `npm run build:css` from the project root.
-
-> **Tip:** For clipboard paste in Compare, the page should be served over **HTTPS** or **localhost** so the Clipboard API is allowed. Opening the file via `file://` may restrict paste in some browsers.
-
-### Optional: local static server
-
-```bash
-# Python 3
-python -m http.server 8080
-
-# Node (npx)
-npx serve .
-```
-
-Visit `http://localhost:8080` and open `index.html` if the server lists the directory.
-
----
-
-## Browser extension (Chrome & Firefox)
-
-The **same** `index.html` and assets work as a static site and as an **unpacked** / **temporary** extension:
-
-1. Ensure `styles.css` exists (run `npm run build:css` from the project root if needed).
-2. **Chrome / Edge:** `chrome://extensions` → Developer mode → **Load unpacked** → select this project folder (where `manifest.json` lives next to `index.html`).
-3. **Firefox:** `about:debugging#/runtime/this-firefox` → **Load Temporary Add-on** → choose `manifest.json` in this folder.
-
-### Optional: `extensions/unpacked/` copy
-
-To mirror the latest shippable files under **`extensions/unpacked/`** (for zips, QA, or loading that path instead of the repo root), run:
-
-```bash
-npm run sync:extension
-```
-
-Then **Load unpacked** from **`extensions/unpacked`** (or pick `extensions/unpacked/manifest.json` in Firefox). See `extensions/README.md`.
-
-Click the toolbar button to open the app in a new tab. For Firefox signing or a permanent add-on id, change `browser_specific_settings.gecko.id` in `manifest.json` to your own id before publishing.
-
----
-
-## Tech stack
-
-| Layer | Choice |
-|--------|--------|
-| Markup | HTML5 |
-| Styling | [Tailwind CSS](https://tailwindcss.com/) (built to `styles.css`; see `tailwind.config.js`) |
-| Logic | Plain JavaScript (`app.js`), no bundler |
-
----
-
-## Project layout
-
-```
-JsonWorkbenchHandler/
-├── index.html          # App shell, tabs, compare + explore + text compare UI
-├── app.js              # Tree render, diff, search, paths, compare filters
-├── styles.css          # Built Tailwind (run npm run build:css to regenerate)
-├── theme-init.js       # Theme before paint (web + extension)
-├── app-extra.css       # Small rules (drop zone, path listbox)
-├── manifest.json       # MV3 manifest (Chrome + Firefox gecko block)
-├── background.js       # Opens index.html in a new tab from toolbar
-├── icons/              # Extension toolbar icons
-├── package.json        # DevDependency: tailwindcss; script build:css
-├── tailwind.config.js
-├── tailwind-input.css
-├── projectdescription.md
-├── README.md
-├── .gitignore
-├── json files/         # Sample JSON (optional)
-└── extensions/         # Note only; load unpacked from repo root
-```
-
----
-
-## Roadmap ideas
-
-- GitHub **Pages** one-click deploy from `main`.
-- Export diff summary as JSON or Markdown.
-- Theme toggle (light / dark).
-
----
-
-## License
-
-This project is provided as-is for learning and reuse. Add a `LICENSE` file if you need a formal terms (e.g. MIT).
-
----
-
-<p align="center">
-  Built with care · <a href="https://github.com/PrasannaKumarThirunagari/JsonWorkbenchHandler">Star the repo</a> if it helps your workflow.
-</p>
+- Load and view JSON as a tree.
+- Search keys and values instantly.
+- Jump directly to a JSON path.
+- Expand and collapse nested nodes for fast navigation.
